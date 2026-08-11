@@ -406,16 +406,18 @@ export default function Profile() {
 
             {user?.email ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-dark-800/50 py-3">
-                  <span className="text-dark-400">Email</span>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-dark-100">{user.email}</span>
-                    {user.email_verified ? (
-                      <span className="badge-success">{t('profile.verified')}</span>
-                    ) : isEmailVerificationEnabled ? (
-                      <span className="badge-warning">{t('profile.notVerified')}</span>
-                    ) : null}
-                  </div>
+                {/* Адрес слева отдельной строкой, статус под ним — как в блоке
+                    телефона. Подпись «Email» убрана: она дублировала заголовок
+                    карточки и отжимала длинный адрес вправо, где он рвался. */}
+                <div className="border-b border-dark-800/50 pb-4">
+                  <p className="break-all text-lg font-medium text-dark-100">{user.email}</p>
+                  {user.email_verified ? (
+                    <span className="badge-success mt-2 inline-block">{t('profile.verified')}</span>
+                  ) : isEmailVerificationEnabled ? (
+                    <span className="badge-warning mt-2 inline-block">
+                      {t('profile.notVerified')}
+                    </span>
+                  ) : null}
                 </div>
 
                 {!user.email_verified && isEmailVerificationEnabled && (
@@ -435,7 +437,7 @@ export default function Profile() {
                       </Button>
                       <button
                         onClick={() => setChangeEmailStep('email')}
-                        className="text-sm text-accent-400 transition-colors hover:text-accent-300"
+                        className="whitespace-nowrap text-sm text-accent-400 transition-colors hover:text-accent-300"
                       >
                         {t('profile.changeEmail.button')}
                       </button>
@@ -444,11 +446,13 @@ export default function Profile() {
                 )}
 
                 {user.email_verified && (
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3">
                     <p className="text-sm text-dark-400">{t('profile.canLoginWithEmail')}</p>
+                    {/* shrink-0 + nowrap: иначе кнопка ужималась подсказкой слева
+                        и «Сменить почту» переносилось на две строки. */}
                     <button
                       onClick={() => setChangeEmailStep('email')}
-                      className="flex items-center gap-2 text-sm text-accent-400 transition-colors hover:text-accent-300"
+                      className="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-accent-400 transition-colors hover:text-accent-300"
                     >
                       <PencilIcon />
                       <span>{t('profile.changeEmail.button')}</span>
