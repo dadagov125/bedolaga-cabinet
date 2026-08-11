@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatPhoneNumber } from '../../../utils/phone';
 import { useNavigate } from 'react-router';
 import { useNotify } from '../../../platform/hooks/useNotify';
 import { useCurrency } from '../../../hooks/useCurrency';
@@ -190,7 +191,13 @@ export function InfoTab(props: InfoTabProps) {
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-dark-800/50 p-3">
           <div className="mb-1 text-xs text-dark-500">Email</div>
-          <div className="text-dark-100">{user.email || '-'}</div>
+          <div className="break-all text-dark-100">{user.email || '-'}</div>
+        </div>
+        <div className="rounded-xl bg-dark-800/50 p-3">
+          <div className="mb-1 text-xs text-dark-500">
+            {t('admin.users.detail.phone', 'Телефон')}
+          </div>
+          <div className="text-dark-100">{formatPhoneNumber(user.phone) || '-'}</div>
         </div>
         <div className="rounded-xl bg-dark-800/50 p-3">
           <div className="mb-1 text-xs text-dark-500">{t('admin.users.detail.language')}</div>

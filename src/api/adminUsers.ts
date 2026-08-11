@@ -55,6 +55,8 @@ export interface UserListItem {
   first_name: string | null;
   last_name: string | null;
   full_name: string;
+  email: string | null;
+  phone: string | null;
   status: string;
   balance_kopeks: number;
   balance_rubles: number;
@@ -120,6 +122,8 @@ export interface UserDetailResponse {
   balance_rubles: number;
   email: string | null;
   email_verified: boolean;
+  phone: string | null;
+  phone_verified: boolean;
   created_at: string;
   updated_at: string | null;
   last_activity: string | null;
@@ -444,6 +448,7 @@ export const adminUsersApi = {
       limit?: number;
       search?: string;
       email?: string;
+      phone?: string;
       status?: 'active' | 'blocked' | 'deleted';
       subscription_status?: string;
       tariff_id?: string;

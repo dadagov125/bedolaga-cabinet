@@ -3272,7 +3272,8 @@
             "completed": "已完成",
             "command": "命令"
           }
-        }
+        },
+        "phone": "手机号"
       },
       "notFound": "未找到用户",
       "purchaseCount": "购买次数：{{count}}",
@@ -3302,7 +3303,8 @@
           "resetSubscription": "订阅已重置",
           "resetTrial": "试用已重置"
         }
-      }
+      },
+      "searchPhone": "按手机号搜索"
     },
     "promoOffers": {
       "title": "促销优惠",

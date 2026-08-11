@@ -3273,7 +3273,8 @@
             "completed": "انجام شده",
             "command": "دستور"
           }
-        }
+        },
+        "phone": "تلفن"
       },
       "notFound": "کاربر یافت نشد",
       "purchaseCount": "تعداد خرید: {{count}}",
@@ -3303,7 +3304,8 @@
           "resetSubscription": "اشتراک بازنشانی شد",
           "resetTrial": "دوره آزمایشی بازنشانی شد"
         }
-      }
+      },
+      "searchPhone": "جست‌وجو با شماره تلفن"
     },
     "promoOffers": {
       "title": "پیشنهادات تبلیغاتی",

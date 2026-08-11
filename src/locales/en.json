@@ -3809,10 +3809,12 @@
             "completed": "Completed",
             "command": "Command"
           }
-        }
+        },
+        "phone": "Phone"
       },
       "notFound": "User not found",
-      "purchaseCount": "Purchases: {{count}}"
+      "purchaseCount": "Purchases: {{count}}",
+      "searchPhone": "Search by phone"
     },
     "promoOffers": {
       "title": "Promo Offers",

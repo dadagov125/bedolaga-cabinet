@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCurrency } from '../hooks/useCurrency';
 import { adminUsersApi, type UserListItem } from '../api/adminUsers';
 import { usePlatform } from '../platform/hooks/usePlatform';
+import { formatPhoneNumber } from '../utils/phone';
 import { StatCard } from '@/components/stats';
 import {
   BackIcon,
@@ -65,10 +66,18 @@ function UserRow({ user, onClick, formatAmount }: UserRowProps) {
           )}
         </div>
 
-        {/* Telegram ID - full width on mobile */}
-        <div className="mb-1 flex items-center gap-1 text-xs text-dark-400 sm:mb-0">
-          <TelegramIcon />
-          <span className="truncate">{user.telegram_id}</span>
+        {/* Контакты. У вошедших по номеру или почте нет ни имени, ни
+            telegram_id — строка выглядела как «User12», и отличить их друг от
+            друга можно было только зайдя в карточку. */}
+        <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-dark-400 sm:mb-0">
+          {user.telegram_id && (
+            <span className="flex items-center gap-1">
+              <TelegramIcon />
+              <span className="truncate">{user.telegram_id}</span>
+            </span>
+          )}
+          {user.phone && <span className="truncate">{formatPhoneNumber(user.phone)}</span>}
+          {user.email && <span className="truncate">{user.email}</span>}
         </div>
 
         {/* Status badges - wrap on mobile */}
@@ -123,6 +132,7 @@ export default function AdminUsers() {
 
   const [search, setSearch] = useState('');
   const [emailSearch, setEmailSearch] = useState('');
+  const [phoneSearch, setPhoneSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [offset, setOffset] = useState(0);
@@ -130,11 +140,21 @@ export default function AdminUsers() {
   const limit = 20;
 
   const usersQuery = useQuery({
-    queryKey: ['admin-users', offset, limit, sortBy, search, emailSearch, statusFilter] as const,
+    queryKey: [
+      'admin-users',
+      offset,
+      limit,
+      sortBy,
+      search,
+      emailSearch,
+      phoneSearch,
+      statusFilter,
+    ] as const,
     queryFn: () => {
       const params: Record<string, unknown> = { offset, limit, sort_by: sortBy };
       if (search) params.search = search;
       if (emailSearch) params.email = emailSearch;
+      if (phoneSearch) params.phone = phoneSearch;
       if (statusFilter) params.status = statusFilter;
       return adminUsersApi.getUsers(params as Parameters<typeof adminUsersApi.getUsers>[0]);
     },
@@ -253,6 +273,26 @@ export default function AdminUsers() {
                   setOffset(0);
                 }}
                 placeholder={t('admin.users.searchEmail')}
+                className="w-full rounded-xl border border-dark-700 bg-dark-800 py-2 pl-10 pr-4 text-dark-100 placeholder-dark-500 focus:border-dark-600 focus:outline-none"
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500">
+                <SearchIcon />
+              </div>
+            </div>
+          </form>
+          {/* Отдельное поле, как у почты: формат не важен — на сервере от номера
+              остаются цифры, и ищем по последним десяти. */}
+          <form onSubmit={handleSearch} className="flex-1">
+            <div className="relative">
+              <input
+                type="tel"
+                inputMode="tel"
+                value={phoneSearch}
+                onChange={(e) => {
+                  setPhoneSearch(e.target.value);
+                  setOffset(0);
+                }}
+                placeholder={t('admin.users.searchPhone', 'Поиск по телефону')}
                 className="w-full rounded-xl border border-dark-700 bg-dark-800 py-2 pl-10 pr-4 text-dark-100 placeholder-dark-500 focus:border-dark-600 focus:outline-none"
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500">
