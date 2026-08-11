@@ -24,11 +24,24 @@ import TelegramLoginButton from '../components/TelegramLoginButton';
 import OAuthProviderIcon from '../components/OAuthProviderIcon';
 import { saveOAuthState } from '../utils/oauth';
 import { getPendingReferralCode } from '../utils/referral';
-import { UsersIcon, EmailIcon, RefreshIcon, ChevronDownIcon } from '@/components/icons';
+import { UsersIcon, EmailIcon, RefreshIcon } from '@/components/icons';
 import LegalFooter from '../components/LegalFooter';
 import LegalConsent from '../components/LegalConsent';
 import { infoApi } from '../api/info';
 import type { LegalConsentConfig } from '../types';
+
+function PhoneIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6.6 2h3l1.5 4-2 1.4a12 12 0 0 0 5.5 5.5l1.4-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.6 4.2A2 2 0 0 1 6.6 2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export default function Login() {
   const { t, i18n } = useTranslation();
@@ -70,7 +83,6 @@ export default function Login() {
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [forgotPasswordError, setForgotPasswordError] = useState('');
-  const [showEmailForm, setShowEmailForm] = useState(true);
 
   // Гейт согласия с офертой/политикой для НОВОГО пользователя. Конфиг публичный:
   // нужен до авторизации, чтобы нарисовать чекбоксы ещё на экране входа.
@@ -196,6 +208,15 @@ export default function Login() {
   const oauthProviders = Array.isArray(oauthData?.providers) ? oauthData.providers : [];
 
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+
+  // Телефон подаётся не как «ещё один провайдер», а как основной способ входа:
+  // для нашей аудитории номер привычнее почты и не зависит от доставки писем.
+  // Поэтому он вынесен в отдельную вкладку и выбран по умолчанию, а email —
+  // вторая вкладка. Если вход по номеру выключен в админке, остаётся только email.
+  const phoneProvider = oauthProviders.find((p) => p.name === 'phone');
+  const socialProviders = oauthProviders.filter((p) => p.name !== 'phone');
+  const [authChannel, setAuthChannel] = useState<'phone' | 'email'>('phone');
+  const activeChannel = phoneProvider ? authChannel : 'email';
 
   const handleOAuthLogin = async (provider: string) => {
     setError('');
@@ -561,6 +582,61 @@ export default function Login() {
               </div>
             )}
 
+            {/* Вкладки способов входа. Показываем только когда есть выбор. */}
+            {phoneProvider && isEmailAuthEnabled && (
+              <div className="mb-5 flex rounded-xl bg-dark-800 p-1">
+                <button
+                  type="button"
+                  onClick={() => setAuthChannel('phone')}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+                    activeChannel === 'phone'
+                      ? 'bg-accent-500 text-on-accent'
+                      : 'text-dark-400 hover:text-dark-200'
+                  }`}
+                >
+                  <PhoneIcon className="h-4 w-4" />
+                  {t('auth.byPhone', 'По телефону')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthChannel('email')}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+                    activeChannel === 'email'
+                      ? 'bg-accent-500 text-on-accent'
+                      : 'text-dark-400 hover:text-dark-200'
+                  }`}
+                >
+                  <EmailIcon className="h-4 w-4" />
+                  Email
+                </button>
+              </div>
+            )}
+
+            {/* Вкладка «телефон»: одна крупная кнопка, дальше всё на нашей странице */}
+            {phoneProvider && activeChannel === 'phone' && (
+              <div className="space-y-3">
+                <p className="text-center text-sm text-dark-400">
+                  {t(
+                    'auth.phoneHint',
+                    'Введите номер и позвоните на указанный номер — вход произойдёт автоматически. Звонок бесплатный.',
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleOAuthLogin('phone')}
+                  disabled={oauthLoading !== null}
+                  className="btn-primary flex w-full items-center justify-center gap-2 py-3 disabled:opacity-50"
+                >
+                  {oauthLoading === 'phone' ? (
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  ) : (
+                    <PhoneIcon className="h-5 w-5" />
+                  )}
+                  {t('auth.continueWithPhone', 'Продолжить по номеру')}
+                </button>
+              </div>
+            )}
+
             {/* Telegram auth section */}
             <div className="space-y-3">
               {isLoading && isTelegramWebApp ? (
@@ -589,8 +665,8 @@ export default function Login() {
               )}
             </div>
 
-            {/* OAuth providers - compact icon row */}
-            {oauthProviders.length > 0 && (
+            {/* OAuth providers - compact icon row (телефон вынесен во вкладку) */}
+            {socialProviders.length > 0 && (
               <>
                 <div className="my-4 flex items-center gap-3">
                   <div className="h-px flex-1 bg-dark-700" />
@@ -598,7 +674,7 @@ export default function Login() {
                   <div className="h-px flex-1 bg-dark-700" />
                 </div>
                 <div className="flex items-stretch gap-2">
-                  {oauthProviders.map((provider) => (
+                  {socialProviders.map((provider) => (
                     <button
                       key={provider.name}
                       type="button"
@@ -621,32 +697,19 @@ export default function Login() {
               </>
             )}
 
-            {/* Email auth section - collapsible */}
-            {isEmailAuthEnabled && (
+            {/* Email: раскрыт сразу, когда выбрана его вкладка. Сворачивающийся
+                блок убран — при табах он превращался в два клика до одного поля. */}
+            {isEmailAuthEnabled && activeChannel === 'email' && (
               <>
-                <div className="my-4 flex items-center gap-3">
-                  <div className="h-px flex-1 bg-dark-700" />
-                  <button
-                    type="button"
-                    onClick={() => setShowEmailForm(!showEmailForm)}
-                    className="flex items-center gap-1.5 rounded-full border border-dark-700 bg-dark-800/60 px-3.5 py-1.5 text-xs font-medium text-dark-300 transition-all hover:border-dark-600 hover:bg-dark-700 hover:text-dark-200"
-                  >
-                    <EmailIcon className="h-3.5 w-3.5 text-dark-400" />
-                    <span>{t('auth.loginWithEmail')}</span>
-                    <ChevronDownIcon
-                      className={`h-3 w-3 text-dark-400 transition-transform duration-300 ${showEmailForm ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  <div className="h-px flex-1 bg-dark-700" />
-                </div>
+                {!phoneProvider && (
+                  <div className="my-4 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-dark-700" />
+                    <span className="text-xs text-dark-500">{t('auth.loginWithEmail')}</span>
+                    <div className="h-px flex-1 bg-dark-700" />
+                  </div>
+                )}
 
-                {/* Collapsible email form */}
-                <div
-                  className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-                    showEmailForm ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                  }`}
-                  style={{ transform: 'translateZ(0)' }}
-                >
+                <div className="grid">
                   <div className="overflow-hidden">
                     <div className="space-y-4 pb-1 pt-1">
                       {showForgotPassword ? (
@@ -728,30 +791,13 @@ export default function Login() {
                       ) : (
                         /* Normal login / register */
                         <>
-                          <div className="flex rounded-lg bg-dark-800 p-1">
-                            <button
-                              type="button"
-                              className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${
-                                authMode === 'login'
-                                  ? 'bg-accent-500 text-on-accent'
-                                  : 'text-dark-400 hover:text-dark-200'
-                              }`}
-                              onClick={() => setAuthMode('login')}
-                            >
-                              {t('auth.login')}
-                            </button>
-                            <button
-                              type="button"
-                              className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${
-                                authMode === 'register'
-                                  ? 'bg-accent-500 text-on-accent'
-                                  : 'text-dark-400 hover:text-dark-200'
-                              }`}
-                              onClick={() => setAuthMode('register')}
-                            >
-                              {t('auth.register', 'Register')}
-                            </button>
-                          </div>
+                          {/* Заголовок вместо второго ряда табов: табы выше уже
+                              выбирают способ входа, и ещё один ряд рядом путал. */}
+                          <p className="text-sm font-medium text-dark-100">
+                            {authMode === 'register'
+                              ? t('auth.register', 'Регистрация')
+                              : t('auth.login', 'Вход')}
+                          </p>
 
                           <form className="space-y-3" onSubmit={handleEmailSubmit}>
                             {authMode === 'register' && (
@@ -890,6 +936,34 @@ export default function Login() {
                               </button>
                             </div>
                           )}
+
+                          {/* Регистрация — небольшой переключатель под формой, а не
+                              второй ряд табов: так короче путь и меньше шума. */}
+                          <p className="pt-1 text-center text-sm text-dark-400">
+                            {authMode === 'login' ? (
+                              <>
+                                {t('auth.noAccount', 'Нет аккаунта?')}{' '}
+                                <button
+                                  type="button"
+                                  onClick={() => setAuthMode('register')}
+                                  className="font-medium text-accent-400 transition-colors hover:text-accent-300"
+                                >
+                                  {t('auth.register', 'Зарегистрироваться')}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                {t('auth.haveAccount', 'Уже есть аккаунт?')}{' '}
+                                <button
+                                  type="button"
+                                  onClick={() => setAuthMode('login')}
+                                  className="font-medium text-accent-400 transition-colors hover:text-accent-300"
+                                >
+                                  {t('auth.login', 'Войти')}
+                                </button>
+                              </>
+                            )}
+                          </p>
                         </>
                       )}
                     </div>
