@@ -243,7 +243,19 @@
     "continueWithDiscord": "Continue with Discord",
     "continueWithVk": "Continue with VK",
     "oauthError": "Authorization was denied or failed",
-    "oauthExpired": "OAuth session expired. Please try again."
+    "oauthExpired": "OAuth session expired. Please try again.",
+    "byPhone": "By phone",
+    "phoneLabel": "Phone number",
+    "continueWithPhone": "Continue",
+    "phoneHint": "We will show a number — call it and you will be logged in automatically. The call is free.",
+    "phoneCallInstruction": "Call this number — no need to wait for an answer, you can hang up.",
+    "phoneCallFromNumber": "Call from {{phone}}",
+    "phoneWaitingCall": "Waiting for your call",
+    "phoneChecking": "Checking the call…",
+    "phoneChangeNumber": "Change number",
+    "phoneTenDigits": "Enter all 10 digits of the number",
+    "phoneStartFailed": "Could not start verification",
+    "phoneExpired": "Time is up"
   },
   "emailVerification": {
     "title": "Email Verification",
@@ -2339,7 +2351,10 @@
       "botStartVideoRemove": "Remove",
       "botStartVideoActive": "Video is set",
       "botStartVideoNone": "No video — the menu uses the logo image",
-      "botStartVideoError": "Could not upload the video"
+      "botStartVideoError": "Could not upload the video",
+      "phoneAuth": "Phone login",
+      "phoneAuthDesc": "The \"By phone\" tab on the login page: confirmation by call",
+      "phoneAuthNotConfigured": "Provider {{provider}} is not configured — set its key in the bot settings"
     },
     "bulkActions": {
       "title": "Bulk Actions",

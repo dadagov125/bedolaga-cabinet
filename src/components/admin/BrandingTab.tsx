@@ -42,6 +42,11 @@ export function BrandingTab({ accentColor = '#3b82f6' }: BrandingTabProps) {
     queryFn: brandingApi.getEmailAuthEnabled,
   });
 
+  const { data: phoneAuthSettings } = useQuery({
+    queryKey: ['phone-auth-settings'],
+    queryFn: brandingApi.getPhoneAuthSettings,
+  });
+
   const { data: giftSettings } = useQuery({
     queryKey: ['gift-enabled'],
     queryFn: brandingApi.getGiftEnabled,
@@ -91,6 +96,24 @@ export function BrandingTab({ accentColor = '#3b82f6' }: BrandingTabProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['email-auth-enabled'] });
     },
+  });
+
+  const [phoneAuthError, setPhoneAuthError] = useState<string | null>(null);
+  const updatePhoneAuthMutation = useMutation({
+    mutationFn: (enabled: boolean) => brandingApi.updatePhoneAuthEnabled(enabled),
+    onMutate: () => setPhoneAuthError(null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['phone-auth-settings'] });
+      // Вкладка на странице входа рисуется по списку провайдеров — обновляем и его.
+      queryClient.invalidateQueries({ queryKey: ['oauth-providers'] });
+    },
+    // 409 приходит, когда у провайдера нет ключа или значение задано в окружении:
+    // без текста ошибки переключатель просто отскакивал бы назад без объяснений.
+    onError: (error: unknown) =>
+      setPhoneAuthError(
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+          t('common.error'),
+      ),
   });
 
   const updateGiftMutation = useMutation({
@@ -330,6 +353,30 @@ export function BrandingTab({ accentColor = '#3b82f6' }: BrandingTabProps) {
               onChange={() => updateEmailAuthMutation.mutate(!(emailAuthSettings?.enabled ?? true))}
               disabled={updateEmailAuthMutation.isPending}
             />
+          </div>
+
+          <div className="rounded-xl bg-dark-700/30 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-medium text-dark-100">{t('admin.settings.phoneAuth')}</span>
+                <p className="text-sm text-dark-400">{t('admin.settings.phoneAuthDesc')}</p>
+              </div>
+              <Toggle
+                checked={phoneAuthSettings?.enabled ?? false}
+                onChange={() =>
+                  updatePhoneAuthMutation.mutate(!(phoneAuthSettings?.enabled ?? false))
+                }
+                disabled={updatePhoneAuthMutation.isPending}
+              />
+            </div>
+            {phoneAuthSettings && !phoneAuthSettings.configured && (
+              <p className="mt-2 text-xs text-warning-400">
+                {t('admin.settings.phoneAuthNotConfigured', {
+                  provider: phoneAuthSettings.provider,
+                })}
+              </p>
+            )}
+            {phoneAuthError && <p className="mt-2 text-xs text-error-400">{phoneAuthError}</p>}
           </div>
 
           <div className="flex items-center justify-between rounded-xl bg-dark-700/30 p-4">

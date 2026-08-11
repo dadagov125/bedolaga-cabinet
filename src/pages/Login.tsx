@@ -803,12 +803,13 @@ export default function Login() {
                 </form>
               ) : (
                 <div className="space-y-4 text-center">
+                  {/* Раньше это была одна фраза, разорванная номером посередине:
+                      два ключа перевода, из которых нельзя собрать другой порядок
+                      слов. Теперь инструкция и номер звонящего — отдельные строки. */}
                   <p className="text-sm text-dark-400">
-                    {t('auth.phoneCallNow', 'Позвоните с номера')}{' '}
-                    <span className="font-medium text-dark-100">+7 {formatPhone(phoneDigits)}</span>{' '}
                     {t(
-                      'auth.phoneCallNowTail',
-                      'на номер ниже. Отвечать не нужно — сбросьте вызов.',
+                      'auth.phoneCallInstruction',
+                      'Позвоните на этот номер — отвечать не нужно, вызов можно сбросить.',
                     )}
                   </p>
 
@@ -818,6 +819,13 @@ export default function Login() {
                   >
                     {prettyDial(dialNumber ?? '')}
                   </a>
+
+                  <p className="text-xs text-dark-500">
+                    {t('auth.phoneCallFromNumber', {
+                      phone: `+7 ${formatPhone(phoneDigits)}`,
+                      defaultValue: 'Звоните с номера {{phone}}',
+                    })}
+                  </p>
 
                   <div className="flex items-center justify-center gap-2 text-xs text-dark-500">
                     <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-dark-600 border-t-accent-400" />

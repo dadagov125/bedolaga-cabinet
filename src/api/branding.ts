@@ -25,6 +25,14 @@ export interface EmailAuthEnabled {
   verification_enabled?: boolean;
 }
 
+/** Вход по номеру телефона. `configured` — у выбранного провайдера есть ключ;
+ *  без него включать нечего. Имя провайдера отдаётся только админу. */
+export interface PhoneAuthSettings {
+  enabled: boolean;
+  provider: string;
+  configured: boolean;
+}
+
 export interface GiftEnabled {
   enabled: boolean;
 }
@@ -305,6 +313,24 @@ export const brandingApi = {
   // Update email auth enabled (admin only)
   updateEmailAuthEnabled: async (enabled: boolean): Promise<EmailAuthEnabled> => {
     const response = await apiClient.patch<EmailAuthEnabled>('/cabinet/branding/email-auth', {
+      enabled,
+    });
+    return response.data;
+  },
+
+  // Вход по номеру телефона (только админ: отдаёт имя провайдера)
+  getPhoneAuthSettings: async (): Promise<PhoneAuthSettings> => {
+    try {
+      const response = await apiClient.get<PhoneAuthSettings>('/cabinet/auth/phone/settings');
+      return response.data;
+    } catch {
+      // Старый бот без этих роутов — считаем, что вход по номеру недоступен.
+      return { enabled: false, provider: '', configured: false };
+    }
+  },
+
+  updatePhoneAuthEnabled: async (enabled: boolean): Promise<PhoneAuthSettings> => {
+    const response = await apiClient.patch<PhoneAuthSettings>('/cabinet/auth/phone/settings', {
       enabled,
     });
     return response.data;

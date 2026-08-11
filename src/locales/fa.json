@@ -237,7 +237,19 @@
     "continueWithDiscord": "ادامه با Discord",
     "continueWithVk": "ادامه با VK",
     "oauthError": "مجوز رد شد یا ناموفق بود",
-    "oauthExpired": "نشست OAuth منقضی شده است. لطفاً دوباره امتحان کنید."
+    "oauthExpired": "نشست OAuth منقضی شده است. لطفاً دوباره امتحان کنید.",
+    "byPhone": "با شماره تلفن",
+    "phoneLabel": "شماره تلفن",
+    "continueWithPhone": "ادامه",
+    "phoneHint": "شماره‌ای نمایش می‌دهیم؛ به آن زنگ بزنید تا به‌طور خودکار وارد شوید. تماس رایگان است.",
+    "phoneCallInstruction": "به این شماره زنگ بزنید — لازم نیست کسی پاسخ دهد، می‌توانید قطع کنید.",
+    "phoneCallFromNumber": "از شماره {{phone}} تماس بگیرید",
+    "phoneWaitingCall": "در انتظار تماس شما",
+    "phoneChecking": "بررسی تماس…",
+    "phoneChangeNumber": "تغییر شماره",
+    "phoneTenDigits": "هر ۱۰ رقم شماره را وارد کنید",
+    "phoneStartFailed": "شروع تأیید ممکن نشد",
+    "phoneExpired": "زمان به پایان رسید"
   },
   "emailVerification": {
     "title": "تایید ایمیل",
@@ -2002,7 +2014,10 @@
       "botStartVideoRemove": "حذف",
       "botStartVideoActive": "ویدیو تنظیم شده است",
       "botStartVideoNone": "ویدیویی تنظیم نشده — منو از تصویر لوگو استفاده می‌کند",
-      "botStartVideoError": "بارگذاری ویدیو ناموفق بود"
+      "botStartVideoError": "بارگذاری ویدیو ناموفق بود",
+      "phoneAuth": "ورود با شماره تلفن",
+      "phoneAuthDesc": "زبانه «با شماره تلفن» در صفحه ورود: تأیید با تماس",
+      "phoneAuthNotConfigured": "سرویس {{provider}} تنظیم نشده است — کلید آن را در تنظیمات ربات وارد کنید"
     },
     "buttons": {
       "color": "رنگ دکمه",

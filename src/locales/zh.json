@@ -237,7 +237,19 @@
     "continueWithDiscord": "通过 Discord 继续",
     "continueWithVk": "通过 VK 继续",
     "oauthError": "授权被拒绝或失败",
-    "oauthExpired": "OAuth 会话已过期。请重试。"
+    "oauthExpired": "OAuth 会话已过期。请重试。",
+    "byPhone": "手机号登录",
+    "phoneLabel": "手机号",
+    "continueWithPhone": "继续",
+    "phoneHint": "我们会显示一个号码，拨打后即自动登录。通话免费。",
+    "phoneCallInstruction": "请拨打此号码——无需等待接听，可直接挂断。",
+    "phoneCallFromNumber": "请使用 {{phone}} 拨打",
+    "phoneWaitingCall": "等待您的来电",
+    "phoneChecking": "正在核对来电…",
+    "phoneChangeNumber": "更改号码",
+    "phoneTenDigits": "请输入完整的 10 位号码",
+    "phoneStartFailed": "无法开始验证",
+    "phoneExpired": "等待超时"
   },
   "emailVerification": {
     "title": "邮箱验证",
@@ -2069,7 +2081,10 @@
       "botStartVideoRemove": "删除",
       "botStartVideoActive": "已设置视频",
       "botStartVideoNone": "未设置视频 — 菜单使用 logo 图片",
-      "botStartVideoError": "视频上传失败"
+      "botStartVideoError": "视频上传失败",
+      "phoneAuth": "手机号登录",
+      "phoneAuthDesc": "登录页的「手机号登录」标签：通过来电验证",
+      "phoneAuthNotConfigured": "服务商 {{provider}} 未配置——请在机器人设置中填写密钥"
     },
     "buttons": {
       "color": "按钮颜色",
