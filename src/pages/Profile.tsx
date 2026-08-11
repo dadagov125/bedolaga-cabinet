@@ -380,14 +380,16 @@ export default function Profile() {
             <h2 className="mb-6 text-lg font-semibold text-dark-100">
               {t('profile.phoneAuth', 'Телефон')}
             </h2>
-            <div className="flex items-center justify-between border-b border-dark-800/50 py-3">
-              <span className="text-dark-400">{t('auth.phoneLabel', 'Номер телефона')}</span>
-              <div className="flex items-center gap-3">
-                <span className="font-medium text-dark-100">{formatPhoneNumber(user.phone)}</span>
-                {user.phone_verified && (
-                  <span className="badge-success">{t('profile.verified')}</span>
-                )}
-              </div>
+            {/* Номер слева, статус под ним. Раскладкой «подпись слева, значение
+                справа» номер на узком экране переносился посередине и рвался
+                пополам; подпись здесь и не нужна — она в заголовке карточки. */}
+            <div className="border-b border-dark-800/50 pb-4">
+              <p className="text-lg font-medium tracking-wide text-dark-100">
+                {formatPhoneNumber(user.phone)}
+              </p>
+              {user.phone_verified && (
+                <span className="badge-success mt-2 inline-block">{t('profile.verified')}</span>
+              )}
             </div>
             <p className="pt-3 text-xs text-dark-500">
               {t('profile.phoneManageHint', 'Изменить номер можно в «Подключённых аккаунтах»')}
