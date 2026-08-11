@@ -62,6 +62,8 @@ interface AuthState {
     deviceId?: string | null,
   ) => Promise<void>;
   loginWithDeepLink: (token: string, campaignSlug?: string | null) => Promise<void>;
+  /** Опрос входа по номеру. true — сессия выдана, false — звонок ещё не пришёл. */
+  loginWithPhone: (sessionId: string) => Promise<boolean>;
   registerWithEmail: (
     email: string,
     password: string,
@@ -347,6 +349,23 @@ export const useAuthStore = create<AuthState>()(
           pendingCampaignBonus: response.campaign_bonus || null,
         });
         await get().checkAdminStatus();
+      },
+
+      loginWithPhone: async (sessionId) => {
+        const response = await authApi.phoneCallStatus(sessionId);
+        if (!response) return false; // звонка ещё не было — продолжаем опрос
+        consumeCampaignSlug();
+        consumeReferralCode();
+        tokenStorage.setTokens(response.access_token, response.refresh_token);
+        set({
+          accessToken: response.access_token,
+          refreshToken: response.refresh_token,
+          user: response.user,
+          isAuthenticated: true,
+          pendingCampaignBonus: response.campaign_bonus || null,
+        });
+        await get().checkAdminStatus();
+        return true;
       },
 
       loginWithOAuth: async (provider, code, state, deviceId) => {

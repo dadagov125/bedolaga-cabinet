@@ -206,6 +206,22 @@ export const authApi = {
     return response.data;
   },
 
+  /** Вход по номеру: запросить номер, на который позвонит пользователь. */
+  phoneCallStart: async (
+    phone: string,
+  ): Promise<{ session_id: string; dial_number: string; expires_in: number }> => {
+    const response = await apiClient.post('/cabinet/auth/phone/call', { phone });
+    return response.data;
+  },
+
+  /** Опрос: пришёл ли звонок. 202 (без токенов) означает «ещё ждём». */
+  phoneCallStatus: async (sessionId: string): Promise<AuthResponse | null> => {
+    const response = await apiClient.post('/cabinet/auth/phone/call/status', {
+      session_id: sessionId,
+    });
+    return response.data?.access_token ? (response.data as AuthResponse) : null;
+  },
+
   oauthCallback: async (
     provider: string,
     code: string,
