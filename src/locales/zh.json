@@ -4452,7 +4452,8 @@
         "google": "Google",
         "yandex": "Yandex",
         "discord": "Discord",
-        "vk": "VK"
+        "vk": "VK",
+        "phone": "手机号"
       },
       "backToAccounts": "返回账户列表"
     },
@@ -4461,7 +4462,10 @@
     "emailMergeCodeDescription": "该邮箱已属于另一个账户。我们已向其发送验证码——请输入以确认所有权并合并账户。",
     "emailMergeCodeLabel": "邮件中的验证码",
     "emailMergeConfirm": "确认并合并",
-    "emailMergeCodeInvalid": "验证码无效或已过期"
+    "emailMergeCodeInvalid": "验证码无效或已过期",
+    "linkPhoneDescription": "我们会显示一个号码，请用要绑定的手机拨打。通话免费。",
+    "phoneAuth": "手机号",
+    "phoneManageHint": "可在「已连接账号」中更改号码"
   },
   "theme": {
     "colors": "主题颜色",

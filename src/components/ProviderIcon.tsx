@@ -17,6 +17,19 @@ export function EmailIcon({ className = 'h-5 w-5' }: { className?: string }) {
   return <CentralEmailIcon className={className} />;
 }
 
+export function PhoneIcon({ className = 'h-5 w-5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M6.6 2h3l1.5 4-2 1.4a12 12 0 0 0 5.5 5.5l1.4-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.6 4.2A2 2 0 0 1 6.6 2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function ProviderIcon({
   provider,
   className,
@@ -29,6 +42,8 @@ export default function ProviderIcon({
       return <TelegramIcon className={className ?? 'h-6 w-6'} />;
     case 'email':
       return <EmailIcon className={cn('text-dark-300', className ?? 'h-6 w-6')} />;
+    case 'phone':
+      return <PhoneIcon className={cn('text-dark-300', className ?? 'h-6 w-6')} />;
     default:
       return <OAuthProviderIcon provider={provider} className={className ?? 'h-6 w-6'} />;
   }

@@ -6,6 +6,7 @@ import { usePlatform } from '@/platform';
 import { copyToClipboard } from '@/utils/clipboard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatPhoneNumber } from '../utils/phone';
 import { useAuthStore } from '../store/auth';
 import { displayName } from '../utils/displayName';
 import { authApi } from '../api/auth';
@@ -365,6 +366,31 @@ export default function Profile() {
             </div>
             <p className="mt-3 text-sm text-dark-500">
               {t('referral.shareHint', { percent: referralInfo?.commission_percent || 0 })}
+            </p>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Телефон — рядом с почтой: это такой же способ входа, и пользователю
+          важно видеть, какой номер к аккаунту привязан. Привязка и отвязка —
+          в «Подключённых аккаунтах», здесь только показ. */}
+      {user?.phone && (
+        <motion.div variants={staggerItem}>
+          <Card>
+            <h2 className="mb-6 text-lg font-semibold text-dark-100">
+              {t('profile.phoneAuth', 'Телефон')}
+            </h2>
+            <div className="flex items-center justify-between border-b border-dark-800/50 py-3">
+              <span className="text-dark-400">{t('auth.phoneLabel', 'Номер телефона')}</span>
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-dark-100">{formatPhoneNumber(user.phone)}</span>
+                {user.phone_verified && (
+                  <span className="badge-success">{t('profile.verified')}</span>
+                )}
+              </div>
+            </div>
+            <p className="pt-3 text-xs text-dark-500">
+              {t('profile.phoneManageHint', 'Изменить номер можно в «Подключённых аккаунтах»')}
             </p>
           </Card>
         </motion.div>

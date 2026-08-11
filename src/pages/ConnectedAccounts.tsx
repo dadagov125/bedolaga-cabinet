@@ -10,6 +10,7 @@ import { Card } from '@/components/data-display/Card';
 import { Button } from '@/components/primitives/Button';
 import { staggerContainer, staggerItem } from '@/components/motion/transitions';
 import ProviderIcon from '../components/ProviderIcon';
+import PhoneCallVerification from '../components/auth/PhoneCallVerification';
 import { LINK_OAUTH_STATE_KEY, LINK_OAUTH_PROVIDER_KEY, getErrorDetail } from '../utils/oauth';
 import { getApiErrorMessage } from '../utils/api-error';
 import { getTelegramInitData } from '../hooks/useTelegramSDK';
@@ -23,7 +24,10 @@ const OAUTH_PROVIDERS = ['google', 'yandex', 'discord', 'vk'];
 const isOAuthProvider = (provider: string): boolean => OAUTH_PROVIDERS.includes(provider);
 
 const isLinkableProvider = (provider: string): boolean =>
-  isOAuthProvider(provider) || provider === 'telegram' || provider === 'email';
+  isOAuthProvider(provider) ||
+  provider === 'telegram' ||
+  provider === 'email' ||
+  provider === 'phone';
 
 // SessionStorage key for Telegram link CSRF state
 export const LINK_TELEGRAM_STATE_KEY = 'link_telegram_state';
@@ -314,6 +318,43 @@ export default function ConnectedAccounts() {
   const pendingLinkProvider = useRef<string | null>(null);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Привязка номера — тот же экран со звонком, что и на странице входа.
+  const [phoneFormOpen, setPhoneFormOpen] = useState(false);
+  const pollPhoneLink = useCallback(
+    async (sessionId: string) => {
+      const result = await authApi.phoneLinkStatus(sessionId);
+      // Номер уже за другим аккаунтом: звонок доказал, что оба принадлежат
+      // одному человеку, поэтому уводим в тот же мастер слияния, что у Telegram.
+      if (result.merge_required && result.merge_token) {
+        navigate(`/merge/${result.merge_token}`, { replace: true });
+        return true;
+      }
+      if (result.linked) {
+        setPhoneFormOpen(false);
+        queryClient.invalidateQueries({ queryKey: ['linked-providers'] });
+        showToast({ type: 'success', message: t('profile.accounts.linkSuccess') });
+        return true;
+      }
+      return false;
+    },
+    [navigate, queryClient, showToast, t],
+  );
+
+  const unlinkPhoneMutation = useMutation({
+    mutationFn: () => authApi.phoneUnlink(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['linked-providers'] });
+      showToast({ type: 'success', message: t('profile.accounts.unlinkSuccess') });
+    },
+    onError: (err: unknown) => {
+      showToast({
+        type: 'error',
+        message: getErrorDetail(err) || t('profile.accounts.unlinkError'),
+      });
+    },
+    onSettled: () => setConfirmingUnlink(null),
+  });
+
   // Email linking inline form state
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [emailValue, setEmailValue] = useState('');
@@ -493,7 +534,9 @@ export default function ConnectedAccounts() {
 
   const canUnlink = (provider: LinkedProvider): boolean => {
     if (!provider.linked) return false;
-    if (!isOAuthProvider(provider.provider)) return false;
+    // Телефон отвязывается наравне с OAuth: у него нет пароля, который можно
+    // было бы потерять вместе с ним.
+    if (!isOAuthProvider(provider.provider) && provider.provider !== 'phone') return false;
     const linkedCount = data?.providers.filter((p) => p.linked).length ?? 0;
     return linkedCount > 1;
   };
@@ -579,7 +622,11 @@ export default function ConnectedAccounts() {
   const handleUnlink = (provider: string) => {
     if (confirmingUnlink === provider) {
       setConfirmingUnlink(null);
-      unlinkMutation.mutate(provider);
+      if (provider === 'phone') {
+        unlinkPhoneMutation.mutate();
+      } else {
+        unlinkMutation.mutate(provider);
+      }
     } else {
       setConfirmingUnlink(provider);
     }
@@ -599,6 +646,14 @@ export default function ConnectedAccounts() {
           }}
         >
           {emailFormOpen ? t('common.cancel') : t('profile.accounts.link')}
+        </Button>
+      );
+    }
+
+    if (provider.provider === 'phone') {
+      return (
+        <Button variant="primary" size="sm" onClick={() => setPhoneFormOpen((prev) => !prev)}>
+          {phoneFormOpen ? t('common.cancel') : t('profile.accounts.link')}
         </Button>
       );
     }
@@ -720,6 +775,35 @@ export default function ConnectedAccounts() {
                 )}
               </div>
             </div>
+
+            {/* Привязка номера: тот же компонент, что и на странице входа */}
+            {provider.provider === 'phone' && !provider.linked && (
+              <AnimatePresence>
+                {phoneFormOpen && (
+                  <motion.div
+                    key="phone-link-form"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-4 border-t border-dark-700/30 pt-4">
+                      <PhoneCallVerification
+                        start={authApi.phoneLinkStart}
+                        poll={pollPhoneLink}
+                        submitLabel={t('profile.accounts.link')}
+                        hint={t(
+                          'profile.linkPhoneDescription',
+                          'Мы покажем номер — позвоните на него с привязываемого телефона. Звонок бесплатный.',
+                        )}
+                        storageKey="phone_link_session"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
 
             {/* Inline email linking form */}
             {provider.provider === 'email' && !provider.linked && (

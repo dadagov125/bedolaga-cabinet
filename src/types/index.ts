@@ -7,12 +7,14 @@ export interface User {
   last_name: string | null;
   email: string | null;
   email_verified: boolean;
+  phone: string | null;
+  phone_verified: boolean;
   balance_kopeks: number;
   balance_rubles: number;
   referral_code: string | null;
   language: string;
   created_at: string;
-  auth_type: 'telegram' | 'email' | 'google' | 'yandex' | 'discord' | 'vk'; // Тип аутентификации
+  auth_type: 'telegram' | 'email' | 'phone' | 'google' | 'yandex' | 'discord' | 'vk'; // Тип аутентификации
 }
 
 // OAuth types

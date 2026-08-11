@@ -4453,7 +4453,8 @@
         "google": "گوگل",
         "yandex": "یاندکس",
         "discord": "دیسکورد",
-        "vk": "VK"
+        "vk": "VK",
+        "phone": "تلفن"
       },
       "backToAccounts": "بازگشت به فهرست حساب‌ها"
     },
@@ -4462,7 +4463,10 @@
     "emailMergeCodeDescription": "این ایمیل قبلاً به حساب دیگری تعلق دارد. کدی به آن ارسال کردیم — برای تأیید مالکیت و ادغام حساب‌ها آن را وارد کنید.",
     "emailMergeCodeLabel": "کد ارسال‌شده در ایمیل",
     "emailMergeConfirm": "تأیید و ادغام",
-    "emailMergeCodeInvalid": "کد نامعتبر یا منقضی‌شده"
+    "emailMergeCodeInvalid": "کد نامعتبر یا منقضی‌شده",
+    "linkPhoneDescription": "شماره‌ای نمایش می‌دهیم؛ از تلفنی که می‌خواهید متصل کنید به آن زنگ بزنید. تماس رایگان است.",
+    "phoneAuth": "تلفن",
+    "phoneManageHint": "شماره را در «حساب‌های متصل» تغییر دهید"
   },
   "theme": {
     "colors": "رنگ‌های تم",

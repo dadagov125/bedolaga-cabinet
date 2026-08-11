@@ -5016,7 +5016,8 @@
         "google": "Google",
         "yandex": "Yandex",
         "discord": "Discord",
-        "vk": "VK"
+        "vk": "VK",
+        "phone": "Phone"
       },
       "backToAccounts": "Back to accounts"
     },
@@ -5025,7 +5026,10 @@
     "emailMergeCodeDescription": "This email already belongs to another account. We sent a code to it — enter it to confirm ownership and merge the accounts.",
     "emailMergeCodeLabel": "Code from the email",
     "emailMergeConfirm": "Confirm and merge",
-    "emailMergeCodeInvalid": "Invalid or expired code"
+    "emailMergeCodeInvalid": "Invalid or expired code",
+    "linkPhoneDescription": "We will show a number — call it from the phone you are linking. The call is free.",
+    "phoneAuth": "Phone",
+    "phoneManageHint": "Change the number in \"Connected accounts\""
   },
   "theme": {
     "colors": "Theme Colors",

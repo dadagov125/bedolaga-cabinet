@@ -24,10 +24,10 @@ import TelegramLoginButton from '../components/TelegramLoginButton';
 import OAuthProviderIcon from '../components/OAuthProviderIcon';
 import { saveOAuthState } from '../utils/oauth';
 import { getPendingReferralCode } from '../utils/referral';
-import { copyToClipboard } from '../utils/clipboard';
-import { UsersIcon, EmailIcon, RefreshIcon, CopyIcon, CheckIcon } from '@/components/icons';
+import { UsersIcon, EmailIcon, RefreshIcon } from '@/components/icons';
 import LegalFooter from '../components/LegalFooter';
 import LegalConsent from '../components/LegalConsent';
+import PhoneCallVerification from '../components/auth/PhoneCallVerification';
 import { infoApi } from '../api/info';
 import type { LegalConsentConfig } from '../types';
 
@@ -222,144 +222,17 @@ export default function Login() {
   const [authChannel, setAuthChannel] = useState<'phone' | 'email'>('phone');
   const activeChannel = phoneAvailable ? authChannel : 'email';
 
-  // Форма входа по номеру живёт прямо здесь, без редиректа на страницу бота:
-  // весь поток — два запроса, а сессию отдаёт тот же AuthResponse, что у email.
+  // Форма входа по номеру — общий компонент: тот же экран используется в
+  // «Подключённых аккаунтах» для привязки номера к существующему аккаунту.
   const loginWithPhone = useAuthStore((state) => state.loginWithPhone);
-  const [phoneDigits, setPhoneDigits] = useState('');
-  const [phoneStep, setPhoneStep] = useState<'input' | 'waiting'>('input');
-  const [phoneBusy, setPhoneBusy] = useState(false);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [dialNumber, setDialNumber] = useState<string | null>(null);
-  const [phoneSession, setPhoneSession] = useState<string | null>(null);
-  const [secondsLeft, setSecondsLeft] = useState(0);
-  const [phoneFocused, setPhoneFocused] = useState(false);
-  const [dialCopied, setDialCopied] = useState(false);
-
-  const formatPhone = (digits: string) => {
-    const d = digits.slice(0, 10);
-    let out = d.slice(0, 3);
-    if (d.length > 3) out += ` ${d.slice(3, 6)}`;
-    if (d.length > 6) out += `-${d.slice(6, 8)}`;
-    if (d.length > 8) out += `-${d.slice(8, 10)}`;
-    return out;
-  };
-
-  const handlePhoneInput = (value: string) => {
-    // Префикс +7 нарисован в самом значении, а не отдельным блоком слева:
-    // так поле остаётся штатным .input и не ломается в светлой теме.
-    const raw = value.startsWith('+7') ? value.slice(2) : value;
-    let d = raw.replace(/\D/g, '');
-    // Вставленный из буфера номер часто идёт с кодом страны — срезаем.
-    if (d.length === 11 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);
-    setPhoneDigits(d.slice(0, 10));
-  };
-
-  // Пока в поле нет ни одной цифры и оно не в фокусе — показываем плейсхолдер,
-  // иначе «+7 » стоит в значении всегда.
-  const phoneValue = phoneDigits || phoneFocused ? `+7 ${formatPhone(phoneDigits)}` : '';
-
-  // Номер для звонка читается вслух и набирается вручную — разбиваем на группы.
-  const prettyDial = (value: string) => {
-    const d = value.replace(/\D/g, '');
-    if (d.length !== 11) return value;
-    return `+${d[0]} ${d.slice(1, 4)} ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9)}`;
-  };
-
-  const countdown = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`;
-
-  const startPhoneLogin = async () => {
-    setPhoneError(null);
-    if (phoneDigits.length !== 10) {
-      setPhoneError(t('auth.phoneTenDigits', 'Введите 10 цифр номера'));
-      return;
-    }
-    setPhoneBusy(true);
-    try {
-      const data = await authApi.phoneCallStart(`+7${phoneDigits}`);
-      setPhoneSession(data.session_id);
-      setDialNumber(data.dial_number);
-      setSecondsLeft(data.expires_in);
-      setPhoneStep('waiting');
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setPhoneError(detail || t('auth.phoneStartFailed', 'Не удалось начать проверку'));
-    } finally {
-      setPhoneBusy(false);
-    }
-  };
-
-  const copyDialNumber = async () => {
-    if (!dialNumber) return;
-    await copyToClipboard(dialNumber);
-    setDialCopied(true);
-    setTimeout(() => setDialCopied(false), 2000);
-  };
-
-  const resetPhoneLogin = () => {
-    setPhoneStep('input');
-    setPhoneSession(null);
-    setDialNumber(null);
-    setPhoneError(null);
-  };
-
-  // Опрос статуса. Раз в секунду и ещё раз при возврате на страницу: пока
-  // пользователь в звонилке, мобильный браузер замораживает таймеры фоновой
-  // вкладки, и без этого подтверждённый (уже оплаченный) звонок остаётся
-  // незамеченным.
-  useEffect(() => {
-    if (phoneStep !== 'waiting' || !phoneSession) return;
-
-    let cancelled = false;
-    let inFlight = false;
-    const deadline = Date.now() + 10 * 60 * 1000; // предохранитель для забытой вкладки
-
-    const poll = async () => {
-      if (cancelled || inFlight) return;
-      inFlight = true;
-      try {
-        const ok = await loginWithPhone(phoneSession);
-        if (ok && !cancelled) {
-          cancelled = true;
-          navigate('/', { replace: true });
-        }
-      } catch (err: unknown) {
-        const status = (err as { response?: { status?: number } })?.response?.status;
-        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail;
-        if (status === 410 || status === 400) {
-          cancelled = true;
-          setPhoneError(detail || t('auth.phoneExpired', 'Время ожидания истекло'));
-          setPhoneStep('input');
-        }
-      } finally {
-        inFlight = false;
-      }
-    };
-
-    const timer = setInterval(() => {
-      if (Date.now() > deadline) {
-        cancelled = true;
-        clearInterval(timer);
-        setPhoneStep('input');
-        setPhoneError(t('auth.phoneExpired', 'Время ожидания истекло'));
-        return;
-      }
-      setSecondsLeft((left) => Math.max(0, left - 1));
-      void poll();
-    }, 1000);
-
-    const onVisible = () => {
-      if (!document.hidden) void poll();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    void poll();
-
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, [phoneStep, phoneSession, loginWithPhone, navigate, t]);
+  const pollPhoneLogin = useCallback(
+    async (sessionId: string) => {
+      const ok = await loginWithPhone(sessionId);
+      if (ok) navigate('/', { replace: true });
+      return ok;
+    },
+    [loginWithPhone, navigate],
+  );
 
   const handleOAuthLogin = async (provider: string) => {
     setError('');
@@ -753,138 +626,13 @@ export default function Login() {
             {/* Вход по номеру — прямо здесь, двумя шагами: ввод номера, затем
                 ожидание звонка. Раньше кнопка уводила на страницу бота, из-за чего
                 пользователь терял контекст и не мог вернуться. */}
-            {phoneAvailable &&
-              activeChannel === 'phone' &&
-              (phoneStep === 'input' ? (
-                <form
-                  className="space-y-3"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void startPhoneLogin();
-                  }}
-                >
-                  <div>
-                    <label htmlFor="phone" className="label">
-                      {t('auth.phoneLabel', 'Номер телефона')}
-                    </label>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      inputMode="numeric"
-                      autoComplete="tel"
-                      className="input"
-                      placeholder="+7 999 123-45-67"
-                      value={phoneValue}
-                      onFocus={() => setPhoneFocused(true)}
-                      onBlur={() => setPhoneFocused(false)}
-                      onChange={(e) => handlePhoneInput(e.target.value)}
-                    />
-                  </div>
-
-                  {phoneError && (
-                    <p className="text-sm text-error-400" role="alert">
-                      {phoneError}
-                    </p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={phoneBusy || phoneDigits.length !== 10}
-                    className="btn-primary w-full py-2.5 disabled:opacity-50"
-                  >
-                    {phoneBusy ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        {t('common.loading')}
-                      </span>
-                    ) : (
-                      t('auth.continueWithPhone', 'Продолжить')
-                    )}
-                  </button>
-
-                  <p className="text-center text-xs text-dark-500">
-                    {t(
-                      'auth.phoneHint',
-                      'Мы покажем номер — позвоните на него, и вход произойдёт автоматически. Звонок бесплатный.',
-                    )}
-                  </p>
-                </form>
-              ) : (
-                <div className="space-y-4 text-center">
-                  {/* Раньше это была одна фраза, разорванная номером посередине:
-                      два ключа перевода, из которых нельзя собрать другой порядок
-                      слов. Теперь инструкция и номер звонящего — отдельные строки. */}
-                  <p className="text-sm text-dark-400">
-                    {t(
-                      'auth.phoneCallInstruction',
-                      'Позвоните на этот номер — отвечать не нужно, вызов можно сбросить.',
-                    )}
-                  </p>
-
-                  {/* Номер сам по себе, крупно и с копированием: на кнопке он читался
-                      как подпись, а не как то, что нужно набрать. На десктопе tel:
-                      никуда не ведёт, и скопировать — единственный способ. */}
-                  <div className="rounded-xl border border-dark-700 bg-dark-800/60 px-4 py-3">
-                    <p className="text-xl font-semibold tracking-wide text-dark-50">
-                      {prettyDial(dialNumber ?? '')}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void copyDialNumber()}
-                      className="mx-auto mt-2 flex items-center gap-1.5 text-xs text-dark-400 transition-colors hover:text-dark-200"
-                    >
-                      {dialCopied ? (
-                        <>
-                          <CheckIcon className="h-3.5 w-3.5 text-success-400" />
-                          {t('common.copied')}
-                        </>
-                      ) : (
-                        <>
-                          <CopyIcon className="h-3.5 w-3.5" />
-                          {t('common.copy')}
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  <a
-                    href={`tel:${dialNumber ?? ''}`}
-                    className="btn-primary flex w-full items-center justify-center gap-2 py-3"
-                  >
-                    <PhoneIcon className="h-5 w-5" />
-                    {t('auth.phoneCallAction', 'Позвонить')}
-                  </a>
-
-                  <p className="text-xs text-dark-500">
-                    {t('auth.phoneCallFromNumber', {
-                      phone: `+7 ${formatPhone(phoneDigits)}`,
-                      defaultValue: 'Звоните с номера {{phone}}',
-                    })}
-                  </p>
-
-                  <div className="flex items-center justify-center gap-2 text-xs text-dark-500">
-                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-dark-600 border-t-accent-400" />
-                    {secondsLeft > 0
-                      ? `${t('auth.phoneWaitingCall', 'Ждём звонок')} · ${countdown}`
-                      : t('auth.phoneChecking', 'Проверяем звонок…')}
-                  </div>
-
-                  {phoneError && (
-                    <p className="text-sm text-error-400" role="alert">
-                      {phoneError}
-                    </p>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={resetPhoneLogin}
-                    className="text-sm text-dark-400 transition-colors hover:text-dark-200"
-                  >
-                    {t('auth.phoneChangeNumber', 'Изменить номер')}
-                  </button>
-                </div>
-              ))}
+            {phoneAvailable && activeChannel === 'phone' && (
+              <PhoneCallVerification
+                start={authApi.phoneCallStart}
+                poll={pollPhoneLogin}
+                storageKey="phone_login_session"
+              />
+            )}
 
             {/* Email: раскрыт сразу, когда выбрана его вкладка. Сворачивающийся
                 блок убран — при табах он превращался в два клика до одного поля,

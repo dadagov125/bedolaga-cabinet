@@ -13,6 +13,20 @@ import type {
   User,
 } from '../types';
 
+export interface PhoneCallStart {
+  session_id: string;
+  dial_number: string;
+  expires_in: number;
+}
+
+export interface PhoneLinkStatus {
+  linked?: boolean;
+  phone?: string | null;
+  /** Номер занят другим аккаунтом: звонок доказал, что оба — этого же человека. */
+  merge_required?: boolean;
+  merge_token?: string | null;
+}
+
 export const authApi = {
   loginTelegram: async (
     initData: string,
@@ -207,11 +221,26 @@ export const authApi = {
   },
 
   /** Вход по номеру: запросить номер, на который позвонит пользователь. */
-  phoneCallStart: async (
-    phone: string,
-  ): Promise<{ session_id: string; dial_number: string; expires_in: number }> => {
+  phoneCallStart: async (phone: string): Promise<PhoneCallStart> => {
     const response = await apiClient.post('/cabinet/auth/phone/call', { phone });
     return response.data;
+  },
+
+  /** То же подтверждение звонком, но для привязки номера к текущему аккаунту. */
+  phoneLinkStart: async (phone: string): Promise<PhoneCallStart> => {
+    const response = await apiClient.post('/cabinet/auth/phone/link/call', { phone });
+    return response.data;
+  },
+
+  phoneLinkStatus: async (sessionId: string): Promise<PhoneLinkStatus> => {
+    const response = await apiClient.post('/cabinet/auth/phone/link/call/status', {
+      session_id: sessionId,
+    });
+    return response.data ?? {};
+  },
+
+  phoneUnlink: async (): Promise<void> => {
+    await apiClient.post('/cabinet/auth/phone/unlink');
   },
 
   /** Опрос: пришёл ли звонок. 202 (без токенов) означает «ещё ждём». */

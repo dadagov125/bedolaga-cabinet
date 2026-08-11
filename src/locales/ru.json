@@ -5560,7 +5560,8 @@
         "google": "Google",
         "yandex": "Яндекс",
         "discord": "Discord",
-        "vk": "VK"
+        "vk": "VK",
+        "phone": "Телефон"
       },
       "backToAccounts": "К списку аккаунтов"
     },
@@ -5569,7 +5570,10 @@
     "emailMergeCodeDescription": "Этот email уже привязан к другому аккаунту. Мы отправили на него код — введите его, чтобы подтвердить владение и объединить аккаунты.",
     "emailMergeCodeLabel": "Код из письма",
     "emailMergeConfirm": "Подтвердить и объединить",
-    "emailMergeCodeInvalid": "Неверный или просроченный код"
+    "emailMergeCodeInvalid": "Неверный или просроченный код",
+    "linkPhoneDescription": "Мы покажем номер — позвоните на него с привязываемого телефона. Звонок бесплатный.",
+    "phoneAuth": "Телефон",
+    "phoneManageHint": "Изменить номер можно в «Подключённых аккаунтах»"
   },
   "theme": {
     "colors": "Цвета темы",
