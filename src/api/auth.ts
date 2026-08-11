@@ -27,6 +27,28 @@ export interface PhoneLinkStatus {
   merge_token?: string | null;
 }
 
+// Кэш списка способов входа на время сессии. Страница входа рисует по нему
+// вкладки, и без кэша при каждой загрузке сначала появлялась форма email, а
+// через полсекунды — вкладка «По телефону», из-за чего страница подпрыгивала.
+// Тот же приём, что у брендинга: sessionStorage + initialData у запроса.
+const OAUTH_PROVIDERS_CACHE_KEY = 'oauth_providers';
+
+export const getCachedOAuthProviders = (): OAuthProvider[] | null => {
+  try {
+    const cached = sessionStorage.getItem(OAUTH_PROVIDERS_CACHE_KEY);
+    if (cached) return JSON.parse(cached);
+  } catch {
+    // storage недоступен или мусор в значении
+  }
+  return null;
+};
+
+export const setCachedOAuthProviders = (providers: OAuthProvider[]) => {
+  try {
+    sessionStorage.setItem(OAUTH_PROVIDERS_CACHE_KEY, JSON.stringify(providers));
+  } catch {}
+};
+
 export const authApi = {
   loginTelegram: async (
     initData: string,
@@ -208,6 +230,7 @@ export const authApi = {
     const response = await apiClient.get<{ providers: OAuthProvider[] }>(
       '/cabinet/auth/oauth/providers',
     );
+    setCachedOAuthProviders(response.data.providers);
     return response.data;
   },
 

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/auth';
 import { useShallow } from 'zustand/shallow';
-import { authApi } from '../api/auth';
+import { authApi, getCachedOAuthProviders } from '../api/auth';
 import { isValidEmail } from '../utils/validation';
 import {
   brandingApi,
@@ -200,11 +200,18 @@ export default function Login() {
     staleTime: 60000,
   });
 
-  // Fetch enabled OAuth providers
-  const { data: oauthData } = useQuery({
+  // Fetch enabled OAuth providers.
+  // initialData из кэша сессии: без него на каждой загрузке сначала рисовалась
+  // форма email, а вкладка «По телефону» появлялась после ответа сервера —
+  // страница подпрыгивала. initialDataUpdatedAt: 0 держит данные протухшими,
+  // так что актуальный список всё равно запрашивается сразу.
+  const [cachedProviders] = useState(() => getCachedOAuthProviders());
+  const { data: oauthData, isPending: providersPending } = useQuery({
     queryKey: ['oauth-providers'],
     queryFn: authApi.getOAuthProviders,
     staleTime: 60000,
+    initialData: cachedProviders ? { providers: cachedProviders } : undefined,
+    initialDataUpdatedAt: 0,
   });
   const oauthProviders = Array.isArray(oauthData?.providers) ? oauthData.providers : [];
 
@@ -221,6 +228,10 @@ export default function Login() {
   const telegramBusy = isTelegramWebApp && isLoading;
   const [authChannel, setAuthChannel] = useState<'phone' | 'email'>('phone');
   const activeChannel = phoneAvailable ? authChannel : 'email';
+  // Первый заход в сессию: кэша ещё нет, и какой способ входа показать —
+  // неизвестно. Рисуем заглушку той же высоты вместо того, чтобы показать
+  // email и через полсекунды переставить всё.
+  const authMethodsPending = providersPending && !isTelegramWebApp;
 
   // Форма входа по номеру — общий компонент: тот же экран используется в
   // «Подключённых аккаунтах» для привязки номера к существующему аккаунту.
@@ -593,8 +604,17 @@ export default function Login() {
               </div>
             )}
 
+            {authMethodsPending && (
+              <div className="animate-pulse space-y-3" aria-hidden="true">
+                <div className="h-[52px] rounded-xl bg-dark-800" />
+                <div className="h-[70px] rounded-xl bg-dark-800/60" />
+                <div className="h-[42px] rounded-xl bg-dark-800/60" />
+                <div className="mx-auto h-3 w-2/3 rounded bg-dark-800/60" />
+              </div>
+            )}
+
             {/* Вкладки способов входа. Показываем только когда есть выбор. */}
-            {phoneAvailable && isEmailAuthEnabled && (
+            {!authMethodsPending && phoneAvailable && isEmailAuthEnabled && (
               <div className="mb-5 flex rounded-xl bg-dark-800 p-1">
                 <button
                   type="button"
@@ -626,7 +646,7 @@ export default function Login() {
             {/* Вход по номеру — прямо здесь, двумя шагами: ввод номера, затем
                 ожидание звонка. Раньше кнопка уводила на страницу бота, из-за чего
                 пользователь терял контекст и не мог вернуться. */}
-            {phoneAvailable && activeChannel === 'phone' && (
+            {!authMethodsPending && phoneAvailable && activeChannel === 'phone' && (
               <PhoneCallVerification
                 start={authApi.phoneCallStart}
                 poll={pollPhoneLogin}
@@ -637,252 +657,262 @@ export default function Login() {
             {/* Email: раскрыт сразу, когда выбрана его вкладка. Сворачивающийся
                 блок убран — при табах он превращался в два клика до одного поля,
                 а вместе с ним ушли три пустые обёртки от анимации высоты. */}
-            {isEmailAuthEnabled && activeChannel === 'email' && !telegramBusy && (
-              <div className="space-y-4">
-                {showForgotPassword ? (
-                  /* Forgot password screen - replaces login/register */
-                  forgotPasswordSent ? (
-                    <div className="space-y-4 text-center">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-success-500/20">
-                        <EmailIcon className="h-6 w-6 text-success-400" />
-                      </div>
-                      <p className="text-sm font-medium text-dark-100">
-                        {t('auth.checkEmail', 'Check your email')}
-                      </p>
-                      <p className="text-xs text-dark-400">
-                        {t(
-                          'auth.passwordResetSent',
-                          'If an account exists with this email, we sent password reset instructions.',
-                        )}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={closeForgotPasswordModal}
-                        className="text-sm text-accent-400 transition-colors hover:text-accent-300"
-                      >
-                        {t('common.back', 'Back')}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <p className="text-center text-sm text-dark-400">
-                        {t(
-                          'auth.forgotPasswordHint',
-                          'Enter your email and we will send you instructions to reset your password.',
-                        )}
-                      </p>
-                      <form onSubmit={handleForgotPassword} className="space-y-3">
-                        <div>
-                          <label htmlFor="forgotEmail" className="label">
-                            Email
-                          </label>
-                          <input
-                            id="forgotEmail"
-                            type="email"
-                            value={forgotPasswordEmail}
-                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                            placeholder="you@example.com"
-                            className="input"
-                            autoFocus
-                          />
+            {!authMethodsPending &&
+              isEmailAuthEnabled &&
+              activeChannel === 'email' &&
+              !telegramBusy && (
+                <div className="space-y-4">
+                  {showForgotPassword ? (
+                    /* Forgot password screen - replaces login/register */
+                    forgotPasswordSent ? (
+                      <div className="space-y-4 text-center">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-success-500/20">
+                          <EmailIcon className="h-6 w-6 text-success-400" />
                         </div>
-                        {forgotPasswordError && (
-                          <p className="text-sm text-error-400">{forgotPasswordError}</p>
-                        )}
-                        <button
-                          type="submit"
-                          disabled={forgotPasswordLoading}
-                          className="btn-primary w-full py-2.5"
-                        >
-                          {forgotPasswordLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                              {t('common.loading')}
-                            </span>
-                          ) : (
-                            t('auth.sendResetLink', 'Send reset link')
+                        <p className="text-sm font-medium text-dark-100">
+                          {t('auth.checkEmail', 'Check your email')}
+                        </p>
+                        <p className="text-xs text-dark-400">
+                          {t(
+                            'auth.passwordResetSent',
+                            'If an account exists with this email, we sent password reset instructions.',
                           )}
-                        </button>
-                      </form>
-                      <div className="text-center">
+                        </p>
                         <button
                           type="button"
                           onClick={closeForgotPasswordModal}
-                          className="text-sm text-dark-400 transition-colors hover:text-dark-200"
+                          className="text-sm text-accent-400 transition-colors hover:text-accent-300"
                         >
                           {t('common.back', 'Back')}
                         </button>
                       </div>
-                    </div>
-                  )
-                ) : (
-                  /* Normal login / register */
-                  <>
-                    {/* Заголовок вместо второго ряда табов: табы выше уже
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-center text-sm text-dark-400">
+                          {t(
+                            'auth.forgotPasswordHint',
+                            'Enter your email and we will send you instructions to reset your password.',
+                          )}
+                        </p>
+                        <form onSubmit={handleForgotPassword} className="space-y-3">
+                          <div>
+                            <label htmlFor="forgotEmail" className="label">
+                              Email
+                            </label>
+                            <input
+                              id="forgotEmail"
+                              type="email"
+                              value={forgotPasswordEmail}
+                              onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                              placeholder="you@example.com"
+                              className="input"
+                              autoFocus
+                            />
+                          </div>
+                          {forgotPasswordError && (
+                            <p className="text-sm text-error-400">{forgotPasswordError}</p>
+                          )}
+                          <button
+                            type="submit"
+                            disabled={forgotPasswordLoading}
+                            className="btn-primary w-full py-2.5"
+                          >
+                            {forgotPasswordLoading ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                {t('common.loading')}
+                              </span>
+                            ) : (
+                              t('auth.sendResetLink', 'Send reset link')
+                            )}
+                          </button>
+                        </form>
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={closeForgotPasswordModal}
+                            className="text-sm text-dark-400 transition-colors hover:text-dark-200"
+                          >
+                            {t('common.back', 'Back')}
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    /* Normal login / register */
+                    <>
+                      {/* Заголовок вместо второго ряда табов: табы выше уже
                               выбирают способ входа, и ещё один ряд рядом путал. */}
-                    <p className="text-sm font-medium text-dark-100">
-                      {authMode === 'register'
-                        ? t('auth.register', 'Регистрация')
-                        : t('auth.login', 'Вход')}
-                    </p>
+                      <p className="text-sm font-medium text-dark-100">
+                        {authMode === 'register'
+                          ? t('auth.register', 'Регистрация')
+                          : t('auth.login', 'Вход')}
+                      </p>
 
-                    <form className="space-y-3" onSubmit={handleEmailSubmit}>
-                      {authMode === 'register' && (
+                      <form className="space-y-3" onSubmit={handleEmailSubmit}>
+                        {authMode === 'register' && (
+                          <div>
+                            <label htmlFor="firstName" className="label">
+                              {t('auth.firstName', 'First Name')}
+                            </label>
+                            <input
+                              id="firstName"
+                              name="firstName"
+                              type="text"
+                              autoComplete="given-name"
+                              className="input"
+                              placeholder={t('auth.firstNamePlaceholder', 'Your name (optional)')}
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
+                            />
+                          </div>
+                        )}
+
                         <div>
-                          <label htmlFor="firstName" className="label">
-                            {t('auth.firstName', 'First Name')}
+                          <label htmlFor="email" className="label">
+                            {t('auth.email')}
                           </label>
                           <input
-                            id="firstName"
-                            name="firstName"
-                            type="text"
-                            autoComplete="given-name"
+                            id="email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            required
                             className="input"
-                            placeholder={t('auth.firstNamePlaceholder', 'Your name (optional)')}
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                           />
                         </div>
-                      )}
 
-                      <div>
-                        <label htmlFor="email" className="label">
-                          {t('auth.email')}
-                        </label>
-                        <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          autoComplete="email"
-                          required
-                          className="input"
-                          placeholder="you@example.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="password" className="label">
-                          {t('auth.password')}
-                        </label>
-                        <input
-                          id="password"
-                          name="password"
-                          type="password"
-                          autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
-                          required
-                          className="input"
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
-                        {authMode === 'register' && password.length > 0 && password.length < 8 && (
-                          <p className="mt-1.5 text-xs text-error-400">
-                            {t('auth.passwordTooShort', 'Password must be at least 8 characters')}
-                          </p>
-                        )}
-                      </div>
-
-                      {authMode === 'register' && (
                         <div>
-                          <label htmlFor="confirmPassword" className="label">
-                            {t('auth.confirmPassword', 'Confirm Password')}
+                          <label htmlFor="password" className="label">
+                            {t('auth.password')}
                           </label>
                           <input
-                            id="confirmPassword"
-                            name="confirmPassword"
+                            id="password"
+                            name="password"
                             type="password"
-                            autoComplete="new-password"
+                            autoComplete={
+                              authMode === 'login' ? 'current-password' : 'new-password'
+                            }
                             required
                             className="input"
                             placeholder="••••••••"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                           />
+                          {authMode === 'register' &&
+                            password.length > 0 &&
+                            password.length < 8 && (
+                              <p className="mt-1.5 text-xs text-error-400">
+                                {t(
+                                  'auth.passwordTooShort',
+                                  'Password must be at least 8 characters',
+                                )}
+                              </p>
+                            )}
+                        </div>
+
+                        {authMode === 'register' && (
+                          <div>
+                            <label htmlFor="confirmPassword" className="label">
+                              {t('auth.confirmPassword', 'Confirm Password')}
+                            </label>
+                            <input
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              type="password"
+                              autoComplete="new-password"
+                              required
+                              className="input"
+                              placeholder="••••••••"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {authMode === 'register' && (
+                          <LegalConsent
+                            documents={consentDocuments}
+                            accepted={acceptedDocuments}
+                            onChange={toggleDocument}
+                            disabled={isLoading}
+                            className="pt-1"
+                          />
+                        )}
+
+                        <button
+                          type="submit"
+                          disabled={isLoading || (authMode === 'register' && !allDocumentsAccepted)}
+                          className="btn-primary w-full py-2.5"
+                        >
+                          {isLoading ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                              {t('common.loading')}
+                            </span>
+                          ) : authMode === 'login' ? (
+                            t('auth.login')
+                          ) : (
+                            t('auth.register', 'Register')
+                          )}
+                        </button>
+                      </form>
+
+                      {authMode === 'register' && (
+                        <p className="text-center text-xs text-dark-500">
+                          {t(
+                            'auth.verificationEmailNotice',
+                            'After registration, a verification email will be sent to your address',
+                          )}
+                        </p>
+                      )}
+
+                      {authMode === 'login' && (
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotPassword(true)}
+                            className="text-sm text-accent-400 transition-colors hover:text-accent-300"
+                          >
+                            {t('auth.forgotPassword', 'Forgot password?')}
+                          </button>
                         </div>
                       )}
 
-                      {authMode === 'register' && (
-                        <LegalConsent
-                          documents={consentDocuments}
-                          accepted={acceptedDocuments}
-                          onChange={toggleDocument}
-                          disabled={isLoading}
-                          className="pt-1"
-                        />
-                      )}
-
-                      <button
-                        type="submit"
-                        disabled={isLoading || (authMode === 'register' && !allDocumentsAccepted)}
-                        className="btn-primary w-full py-2.5"
-                      >
-                        {isLoading ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                            {t('common.loading')}
-                          </span>
-                        ) : authMode === 'login' ? (
-                          t('auth.login')
+                      {/* Регистрация — небольшой переключатель под формой, а не
+                              второй ряд табов: так короче путь и меньше шума. */}
+                      <p className="pt-1 text-center text-sm text-dark-400">
+                        {authMode === 'login' ? (
+                          <>
+                            {t('auth.noAccount', 'Нет аккаунта?')}{' '}
+                            <button
+                              type="button"
+                              onClick={() => setAuthMode('register')}
+                              className="font-medium text-accent-400 transition-colors hover:text-accent-300"
+                            >
+                              {t('auth.register', 'Зарегистрироваться')}
+                            </button>
+                          </>
                         ) : (
-                          t('auth.register', 'Register')
-                        )}
-                      </button>
-                    </form>
-
-                    {authMode === 'register' && (
-                      <p className="text-center text-xs text-dark-500">
-                        {t(
-                          'auth.verificationEmailNotice',
-                          'After registration, a verification email will be sent to your address',
+                          <>
+                            {t('auth.haveAccount', 'Уже есть аккаунт?')}{' '}
+                            <button
+                              type="button"
+                              onClick={() => setAuthMode('login')}
+                              className="font-medium text-accent-400 transition-colors hover:text-accent-300"
+                            >
+                              {t('auth.login', 'Войти')}
+                            </button>
+                          </>
                         )}
                       </p>
-                    )}
-
-                    {authMode === 'login' && (
-                      <div className="text-center">
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotPassword(true)}
-                          className="text-sm text-accent-400 transition-colors hover:text-accent-300"
-                        >
-                          {t('auth.forgotPassword', 'Forgot password?')}
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Регистрация — небольшой переключатель под формой, а не
-                              второй ряд табов: так короче путь и меньше шума. */}
-                    <p className="pt-1 text-center text-sm text-dark-400">
-                      {authMode === 'login' ? (
-                        <>
-                          {t('auth.noAccount', 'Нет аккаунта?')}{' '}
-                          <button
-                            type="button"
-                            onClick={() => setAuthMode('register')}
-                            className="font-medium text-accent-400 transition-colors hover:text-accent-300"
-                          >
-                            {t('auth.register', 'Зарегистрироваться')}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {t('auth.haveAccount', 'Уже есть аккаунт?')}{' '}
-                          <button
-                            type="button"
-                            onClick={() => setAuthMode('login')}
-                            className="font-medium text-accent-400 transition-colors hover:text-accent-300"
-                          >
-                            {t('auth.login', 'Войти')}
-                          </button>
-                        </>
-                      )}
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
+                    </>
+                  )}
+                </div>
+              )}
 
             {/* Telegram и соцсети — под основной формой: они дополняют вход, а не
                 конкурируют с ним. Раньше кнопка Telegram стояла выше формы и
