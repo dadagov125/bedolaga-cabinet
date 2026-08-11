@@ -24,7 +24,8 @@ import TelegramLoginButton from '../components/TelegramLoginButton';
 import OAuthProviderIcon from '../components/OAuthProviderIcon';
 import { saveOAuthState } from '../utils/oauth';
 import { getPendingReferralCode } from '../utils/referral';
-import { UsersIcon, EmailIcon, RefreshIcon } from '@/components/icons';
+import { copyToClipboard } from '../utils/clipboard';
+import { UsersIcon, EmailIcon, RefreshIcon, CopyIcon, CheckIcon } from '@/components/icons';
 import LegalFooter from '../components/LegalFooter';
 import LegalConsent from '../components/LegalConsent';
 import { infoApi } from '../api/info';
@@ -232,6 +233,7 @@ export default function Login() {
   const [phoneSession, setPhoneSession] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [phoneFocused, setPhoneFocused] = useState(false);
+  const [dialCopied, setDialCopied] = useState(false);
 
   const formatPhone = (digits: string) => {
     const d = digits.slice(0, 10);
@@ -284,6 +286,13 @@ export default function Login() {
     } finally {
       setPhoneBusy(false);
     }
+  };
+
+  const copyDialNumber = async () => {
+    if (!dialNumber) return;
+    await copyToClipboard(dialNumber);
+    setDialCopied(true);
+    setTimeout(() => setDialCopied(false), 2000);
   };
 
   const resetPhoneLogin = () => {
@@ -813,11 +822,38 @@ export default function Login() {
                     )}
                   </p>
 
+                  {/* Номер сам по себе, крупно и с копированием: на кнопке он читался
+                      как подпись, а не как то, что нужно набрать. На десктопе tel:
+                      никуда не ведёт, и скопировать — единственный способ. */}
+                  <div className="rounded-xl border border-dark-700 bg-dark-800/60 px-4 py-3">
+                    <p className="text-xl font-semibold tracking-wide text-dark-50">
+                      {prettyDial(dialNumber ?? '')}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void copyDialNumber()}
+                      className="mx-auto mt-2 flex items-center gap-1.5 text-xs text-dark-400 transition-colors hover:text-dark-200"
+                    >
+                      {dialCopied ? (
+                        <>
+                          <CheckIcon className="h-3.5 w-3.5 text-success-400" />
+                          {t('common.copied')}
+                        </>
+                      ) : (
+                        <>
+                          <CopyIcon className="h-3.5 w-3.5" />
+                          {t('common.copy')}
+                        </>
+                      )}
+                    </button>
+                  </div>
+
                   <a
                     href={`tel:${dialNumber ?? ''}`}
-                    className="btn-primary block w-full py-3 text-base tracking-wide"
+                    className="btn-primary flex w-full items-center justify-center gap-2 py-3"
                   >
-                    {prettyDial(dialNumber ?? '')}
+                    <PhoneIcon className="h-5 w-5" />
+                    {t('auth.phoneCallAction', 'Позвонить')}
                   </a>
 
                   <p className="text-xs text-dark-500">

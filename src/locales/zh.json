@@ -249,7 +249,8 @@
     "phoneChangeNumber": "更改号码",
     "phoneTenDigits": "请输入完整的 10 位号码",
     "phoneStartFailed": "无法开始验证",
-    "phoneExpired": "等待超时"
+    "phoneExpired": "等待超时",
+    "phoneCallAction": "拨打"
   },
   "emailVerification": {
     "title": "邮箱验证",

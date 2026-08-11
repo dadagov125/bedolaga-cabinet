@@ -258,7 +258,8 @@
     "phoneChangeNumber": "Изменить номер",
     "phoneTenDigits": "Введите 10 цифр номера",
     "phoneStartFailed": "Не удалось начать проверку",
-    "phoneExpired": "Время ожидания истекло"
+    "phoneExpired": "Время ожидания истекло",
+    "phoneCallAction": "Позвонить"
   },
   "emailVerification": {
     "title": "Подтверждение email",

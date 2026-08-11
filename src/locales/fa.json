@@ -249,7 +249,8 @@
     "phoneChangeNumber": "تغییر شماره",
     "phoneTenDigits": "هر ۱۰ رقم شماره را وارد کنید",
     "phoneStartFailed": "شروع تأیید ممکن نشد",
-    "phoneExpired": "زمان به پایان رسید"
+    "phoneExpired": "زمان به پایان رسید",
+    "phoneCallAction": "تماس"
   },
   "emailVerification": {
     "title": "تایید ایمیل",
