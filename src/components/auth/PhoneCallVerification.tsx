@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CopyIcon, CheckIcon } from '@/components/icons';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -30,6 +30,8 @@ interface StoredSession {
 }
 
 const POLL_INTERVAL_MS = 1000;
+/** Через сколько повторить попытку открыть звонилку, если пользователь всё ещё на странице. */
+const AUTO_DIAL_RETRY_MS = 5000;
 /** Предохранитель для забытой вкладки; совпадает с окном повторной выдачи на бэкенде. */
 const HARD_STOP_MS = 10 * 60 * 1000;
 
@@ -64,6 +66,7 @@ export default function PhoneCallVerification({
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [focused, setFocused] = useState(false);
   const [copied, setCopied] = useState(false);
+  const dialTriedAt = useRef(0);
 
   // Пока идёт звонок, мобильный браузер нередко выгружает вкладку и при
   // возврате перезагружает страницу — сессия в памяти теряется вместе с
@@ -123,6 +126,11 @@ export default function PhoneCallVerification({
       // может (это запрет платформы), но открыть звонилку с уже набранным
       // номером — может: остаётся нажать вызов. Только на телефоне: на десктопе
       // tel: в лучшем случае откроет чужое приложение.
+      //
+      // Эта попытка идёт прямо в обработчике нажатия, пока «жест пользователя»
+      // ещё не потрачен, — она самая надёжная. Повтор через несколько секунд
+      // делает эффект в useEffect ниже, на случай если её заблокировали.
+      dialTriedAt.current = Date.now();
       if (isPhone()) {
         window.location.href = `tel:${data.dial_number}`;
       }
@@ -156,6 +164,24 @@ export default function PhoneCallVerification({
     setDialNumber(null);
     setError(null);
   };
+
+  // Повторная попытка открыть звонилку. Первая идёт в обработчике нажатия и
+  // обычно срабатывает; но если браузер её заблокировал или пользователь просто
+  // смотрит на экран, не понимая, чего от него хотят, — через пять секунд
+  // пробуем снова. Условие `visibilityState === 'visible'` отсекает случай,
+  // когда звонилка уже открылась: тогда вкладка в фоне и дёргать её незачем.
+  useEffect(() => {
+    if (step !== 'waiting' || !dialNumber || !isPhone()) return;
+
+    const timer = setTimeout(() => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - dialTriedAt.current < 4000) return;
+      dialTriedAt.current = Date.now();
+      window.location.href = `tel:${dialNumber}`;
+    }, AUTO_DIAL_RETRY_MS);
+
+    return () => clearTimeout(timer);
+  }, [step, dialNumber]);
 
   // Опрос раз в секунду и ещё раз при возврате на страницу: пока пользователь
   // в звонилке, браузер замораживает таймеры фоновой вкладки, и без этого
@@ -295,6 +321,9 @@ export default function PhoneCallVerification({
           сама или человек звонит с другого устройства. */}
       <a
         href={`tel:${dialNumber ?? ''}`}
+        onClick={() => {
+          dialTriedAt.current = Date.now();
+        }}
         className="btn-primary flex w-full items-center justify-center gap-2 py-3 text-base"
       >
         {t('auth.phoneCallAction', 'Позвонить')}
