@@ -32,6 +32,8 @@ interface StoredSession {
 const POLL_INTERVAL_MS = 1000;
 /** Через сколько повторить попытку открыть звонилку, если пользователь всё ещё на странице. */
 const AUTO_DIAL_RETRY_MS = 5000;
+/** После этого запрос считаем зависшим и отправляем следующий, не дожидаясь его. */
+const STALE_REQUEST_MS = 6000;
 /** Предохранитель для забытой вкладки; совпадает с окном повторной выдачи на бэкенде. */
 const HARD_STOP_MS = 10 * 60 * 1000;
 
@@ -190,12 +192,19 @@ export default function PhoneCallVerification({
     if (step !== 'waiting' || !sessionId) return;
 
     let cancelled = false;
-    let inFlight = false;
+    // Не «идёт ли запрос», а «когда он начался»: Safari, уводя вкладку в фон на
+    // время звонка, замораживает запрос — тот не завершается ни успехом, ни
+    // ошибкой. С обычным булевым флагом это навсегда блокировало опрос: человек
+    // возвращался, видел крутилку и через минуту — «время истекло», хотя звонок
+    // прошёл. Поэтому зависший дольше STALE_REQUEST_MS запрос перестаём ждать и
+    // отправляем следующий; опрос идемпотентен, лишний запрос безвреден.
+    let inFlightSince = 0;
     const deadline = Date.now() + HARD_STOP_MS;
 
     const tick = async () => {
-      if (cancelled || inFlight) return;
-      inFlight = true;
+      if (cancelled) return;
+      if (inFlightSince && Date.now() - inFlightSince < STALE_REQUEST_MS) return;
+      inFlightSince = Date.now();
       try {
         const done = await poll(sessionId);
         if (done && !cancelled) {
@@ -209,11 +218,21 @@ export default function PhoneCallVerification({
         if (status === 410 || status === 400) {
           cancelled = true;
           forgetSession();
-          setError(detail || t('auth.phoneExpired', 'Время ожидания истекло'));
+          // На 410 сервер отвечает технически («время ожидания звонка истекло»),
+          // а человеку нужно знать, что делать дальше. Текст 400 оставляем: там
+          // причина конкретная — например, звонок пришёл с другого номера.
+          setError(
+            status === 410
+              ? t(
+                  'auth.phoneExpired',
+                  'Звонок не дошёл. Нажмите «Продолжить» ещё раз и позвоните с того же номера.',
+                )
+              : detail || t('auth.phoneStartFailed', 'Не удалось начать проверку'),
+          );
           setStep('input');
         }
       } finally {
-        inFlight = false;
+        inFlightSince = 0;
       }
     };
 
@@ -231,7 +250,12 @@ export default function PhoneCallVerification({
     }, POLL_INTERVAL_MS);
 
     const onVisible = () => {
-      if (!document.hidden) void tick();
+      if (document.hidden) return;
+      // Вернулись из звонилки: запрос, начатый до ухода, мог зависнуть вместе с
+      // вкладкой — снимаем блокировку и опрашиваем немедленно, не дожидаясь,
+      // пока он протухнет по времени.
+      inFlightSince = 0;
+      void tick();
     };
     document.addEventListener('visibilitychange', onVisible);
     void tick();

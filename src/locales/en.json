@@ -255,7 +255,7 @@
     "phoneChangeNumber": "Change number",
     "phoneTenDigits": "Enter all 10 digits of the number",
     "phoneStartFailed": "Could not start verification",
-    "phoneExpired": "Time is up",
+    "phoneExpired": "We did not get your call. Tap \"Continue\" again and call from the same number.",
     "phoneCallAction": "Call",
     "phoneCallTitle": "Call us — you will be signed in automatically"
   },

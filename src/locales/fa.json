@@ -249,7 +249,7 @@
     "phoneChangeNumber": "تغییر شماره",
     "phoneTenDigits": "هر ۱۰ رقم شماره را وارد کنید",
     "phoneStartFailed": "شروع تأیید ممکن نشد",
-    "phoneExpired": "زمان به پایان رسید",
+    "phoneExpired": "تماس شما دریافت نشد. دوباره «ادامه» را بزنید و از همان شماره تماس بگیرید.",
     "phoneCallAction": "تماس",
     "phoneCallTitle": "به ما زنگ بزنید — ورود خودکار انجام می‌شود"
   },

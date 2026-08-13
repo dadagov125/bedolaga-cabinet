@@ -249,7 +249,7 @@
     "phoneChangeNumber": "更改号码",
     "phoneTenDigits": "请输入完整的 10 位号码",
     "phoneStartFailed": "无法开始验证",
-    "phoneExpired": "等待超时",
+    "phoneExpired": "未收到您的来电。请再次点击「继续」，并用同一号码拨打。",
     "phoneCallAction": "拨打",
     "phoneCallTitle": "请拨打给我们——将自动完成登录"
   },
