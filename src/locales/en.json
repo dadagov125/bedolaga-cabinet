@@ -247,8 +247,8 @@
     "byPhone": "By phone",
     "phoneLabel": "Phone number",
     "continueWithPhone": "Continue",
-    "phoneHint": "We will show a number — call it and you will be logged in automatically. The call is free.",
-    "phoneCallInstruction": "Call this number — no need to wait for an answer, you can hang up.",
+    "phoneHint": "We will show a number and open your dialer — just press call. The call is free.",
+    "phoneCallInstruction": "The call is free. Nobody will answer — just hang up after a couple of seconds.",
     "phoneCallFromNumber": "Call from {{phone}}",
     "phoneWaitingCall": "Waiting for your call",
     "phoneChecking": "Checking the call…",
@@ -256,7 +256,8 @@
     "phoneTenDigits": "Enter all 10 digits of the number",
     "phoneStartFailed": "Could not start verification",
     "phoneExpired": "Time is up",
-    "phoneCallAction": "Call"
+    "phoneCallAction": "Call",
+    "phoneCallTitle": "Call us — you will be signed in automatically"
   },
   "emailVerification": {
     "title": "Email Verification",

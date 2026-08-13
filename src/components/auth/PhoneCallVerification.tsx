@@ -33,6 +33,10 @@ const POLL_INTERVAL_MS = 1000;
 /** Предохранитель для забытой вкладки; совпадает с окном повторной выдачи на бэкенде. */
 const HARD_STOP_MS = 10 * 60 * 1000;
 
+/** Телефон, а не планшет и не десктоп: только там tel: ведёт в звонилку. */
+const isPhone = () =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
 const formatPhone = (digits: string) => {
   const d = digits.slice(0, 10);
   let out = d.slice(0, 3);
@@ -114,6 +118,14 @@ export default function PhoneCallVerification({
       setDialNumber(data.dial_number);
       setSecondsLeft(data.expires_in);
       setStep('waiting');
+      // Люди ждут входящего звонка вместо того, чтобы позвонить самим, — самая
+      // частая причина брошенного входа. Позвонить за пользователя браузер не
+      // может (это запрет платформы), но открыть звонилку с уже набранным
+      // номером — может: остаётся нажать вызов. Только на телефоне: на десктопе
+      // tel: в лучшем случае откроет чужое приложение.
+      if (isPhone()) {
+        window.location.href = `tel:${data.dial_number}`;
+      }
       if (storageKey) {
         const saved: StoredSession = {
           sessionId: data.session_id,
@@ -267,16 +279,27 @@ export default function PhoneCallVerification({
 
   return (
     <div className="space-y-4 text-center">
+      {/* Главное — что звонить должен пользователь. Прежний текст начинался с
+          «Позвоните на этот номер», и половина читала это как «вам позвонят». */}
+      <p className="text-base font-medium text-dark-100">
+        {t('auth.phoneCallTitle', 'Позвоните нам — вход завершится сам')}
+      </p>
       <p className="text-sm text-dark-400">
         {t(
           'auth.phoneCallInstruction',
-          'Позвоните на этот номер — отвечать не нужно, вызов можно сбросить.',
+          'Звонок бесплатный. Отвечать никто не будет — просто сбросьте вызов через пару секунд.',
         )}
       </p>
 
-      {/* Номер сам по себе, крупно и с копированием: на кнопке он читался как
-          подпись, а не как то, что нужно набрать. На десктопе tel: никуда не
-          ведёт, и скопировать — единственный способ его забрать. */}
+      {/* Действие раньше номера: номер нужен, только если звонилка не открылась
+          сама или человек звонит с другого устройства. */}
+      <a
+        href={`tel:${dialNumber ?? ''}`}
+        className="btn-primary flex w-full items-center justify-center gap-2 py-3 text-base"
+      >
+        {t('auth.phoneCallAction', 'Позвонить')}
+      </a>
+
       <div className="rounded-xl border border-dark-700 bg-dark-800/60 px-4 py-3">
         <p className="text-xl font-semibold tracking-wide text-dark-50">
           {formatPhoneNumber(dialNumber)}
@@ -299,13 +322,6 @@ export default function PhoneCallVerification({
           )}
         </button>
       </div>
-
-      <a
-        href={`tel:${dialNumber ?? ''}`}
-        className="btn-primary flex w-full items-center justify-center gap-2 py-3"
-      >
-        {t('auth.phoneCallAction', 'Позвонить')}
-      </a>
 
       {digits.length === 10 && (
         <p className="text-xs text-dark-500">

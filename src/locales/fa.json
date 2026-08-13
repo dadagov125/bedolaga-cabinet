@@ -241,8 +241,8 @@
     "byPhone": "با شماره تلفن",
     "phoneLabel": "شماره تلفن",
     "continueWithPhone": "ادامه",
-    "phoneHint": "شماره‌ای نمایش می‌دهیم؛ به آن زنگ بزنید تا به‌طور خودکار وارد شوید. تماس رایگان است.",
-    "phoneCallInstruction": "به این شماره زنگ بزنید — لازم نیست کسی پاسخ دهد، می‌توانید قطع کنید.",
+    "phoneHint": "شماره را نشان می‌دهیم و شماره‌گیر را باز می‌کنیم — فقط تماس را بزنید. تماس رایگان است.",
+    "phoneCallInstruction": "تماس رایگان است. کسی پاسخ نمی‌دهد — بعد از چند ثانیه قطع کنید.",
     "phoneCallFromNumber": "از شماره {{phone}} تماس بگیرید",
     "phoneWaitingCall": "در انتظار تماس شما",
     "phoneChecking": "بررسی تماس…",
@@ -250,7 +250,8 @@
     "phoneTenDigits": "هر ۱۰ رقم شماره را وارد کنید",
     "phoneStartFailed": "شروع تأیید ممکن نشد",
     "phoneExpired": "زمان به پایان رسید",
-    "phoneCallAction": "تماس"
+    "phoneCallAction": "تماس",
+    "phoneCallTitle": "به ما زنگ بزنید — ورود خودکار انجام می‌شود"
   },
   "emailVerification": {
     "title": "تایید ایمیل",

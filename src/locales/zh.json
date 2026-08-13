@@ -241,8 +241,8 @@
     "byPhone": "手机号登录",
     "phoneLabel": "手机号",
     "continueWithPhone": "继续",
-    "phoneHint": "我们会显示一个号码，拨打后即自动登录。通话免费。",
-    "phoneCallInstruction": "请拨打此号码——无需等待接听，可直接挂断。",
+    "phoneHint": "我们会显示号码并打开拨号界面，按下拨打即可。通话免费。",
+    "phoneCallInstruction": "通话免费。无人接听——几秒后挂断即可。",
     "phoneCallFromNumber": "请使用 {{phone}} 拨打",
     "phoneWaitingCall": "等待您的来电",
     "phoneChecking": "正在核对来电…",
@@ -250,7 +250,8 @@
     "phoneTenDigits": "请输入完整的 10 位号码",
     "phoneStartFailed": "无法开始验证",
     "phoneExpired": "等待超时",
-    "phoneCallAction": "拨打"
+    "phoneCallAction": "拨打",
+    "phoneCallTitle": "请拨打给我们——将自动完成登录"
   },
   "emailVerification": {
     "title": "邮箱验证",
