@@ -5868,7 +5868,7 @@
     "forMe": "Для себя",
     "asGift": "В подарок",
     "contactLabel": "Ваш email или @username Telegram",
-    "yourContact": "Ваш email или @username",
+    "yourContact": "Введите ваш идентификатор",
     "contactPlaceholder": "email@example.com, +7 999 123-45-67 или @telegram",
     "contactHint": "Почта, номер телефона или Telegram @username — по нему вы войдёте в кабинет",
     "recipientLabel": "Кому подарить",
@@ -5954,7 +5954,23 @@
       "nMonths_many": "{{count}} месяцев",
       "nDays": "{{count}} дн",
       "nMonths": "{{count}} мес"
-    }
+    },
+    "contactTabs": {
+      "phone": "Телефон",
+      "email": "Email",
+      "telegram": "Telegram"
+    },
+    "contactPlaceholders": {
+      "phone": "+7 999 123-45-67",
+      "email": "email@example.com",
+      "telegram": "@username"
+    },
+    "contactHints": {
+      "phone": "По этому номеру вы войдёте в кабинет — вход подтверждается звонком",
+      "email": "На эту почту придёт доступ, по ней же вход в кабинет",
+      "telegram": "Ваш @username в Telegram — доступ придёт в бот"
+    },
+    "recipientHint": "Как получатель заберёт подарок"
   },
   "coupon": {
     "title": "Купон на подписку",

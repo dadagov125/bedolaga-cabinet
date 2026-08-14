@@ -5321,7 +5321,7 @@
     "forMe": "For me",
     "asGift": "As a gift",
     "contactLabel": "Your email or @username",
-    "yourContact": "Your email or @username",
+    "yourContact": "Enter your identifier",
     "contactPlaceholder": "email@example.com, +7 999 123-45-67 or @telegram",
     "contactHint": "Email, phone number or Telegram @username — you will use it to sign in",
     "recipientLabel": "Gift recipient",
@@ -5405,7 +5405,23 @@
       "nMonths_other": "{{count}} months",
       "nDays": "{{count}} days",
       "nMonths": "{{count}} months"
-    }
+    },
+    "contactTabs": {
+      "phone": "Phone",
+      "email": "Email",
+      "telegram": "Telegram"
+    },
+    "contactPlaceholders": {
+      "phone": "+7 999 123-45-67",
+      "email": "email@example.com",
+      "telegram": "@username"
+    },
+    "contactHints": {
+      "phone": "You will sign in with this number — confirmed by a call",
+      "email": "Access is sent here, and you sign in with it",
+      "telegram": "Your Telegram @username — access arrives in the bot"
+    },
+    "recipientHint": "How the recipient will claim the gift"
   },
   "coupon": {
     "title": "Subscription coupon",

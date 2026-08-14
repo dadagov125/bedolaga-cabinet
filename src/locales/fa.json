@@ -4872,7 +4872,7 @@
     "forMe": "برای خودم",
     "asGift": "به عنوان هدیه",
     "contactLabel": "ایمیل یا @نام کاربری شما",
-    "yourContact": "ایمیل یا @نام کاربری شما",
+    "yourContact": "شناسه خود را وارد کنید",
     "contactPlaceholder": "email@example.com، ‎+7 999 123-45-67 یا ‎@telegram",
     "contactHint": "ایمیل، شماره تلفن یا ‎@username تلگرام — با همان وارد می‌شوید",
     "recipientLabel": "گیرنده هدیه",
@@ -4952,7 +4952,23 @@
       "hours": "ساعت",
       "minutes": "دقیقه",
       "seconds": "ثانیه"
-    }
+    },
+    "contactTabs": {
+      "phone": "تلفن",
+      "email": "ایمیل",
+      "telegram": "تلگرام"
+    },
+    "contactPlaceholders": {
+      "phone": "+7 999 123-45-67",
+      "email": "email@example.com",
+      "telegram": "@username"
+    },
+    "contactHints": {
+      "phone": "با این شماره وارد می‌شوید — تأیید با تماس",
+      "email": "دسترسی به این ایمیل ارسال می‌شود و با آن وارد می‌شوید",
+      "telegram": "نام کاربری تلگرام شما — دسترسی در ربات می‌آید"
+    },
+    "recipientHint": "گیرنده چگونه هدیه را دریافت می‌کند"
   },
   "gift": {
     "title": "هدیه اشتراک",

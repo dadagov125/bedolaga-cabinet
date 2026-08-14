@@ -3,6 +3,13 @@ import { createPortal } from 'react-dom';
 import { useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import ContactField, {
+  type ContactType,
+  type ContactValues,
+  EMPTY_CONTACTS,
+  contactPayload,
+  isContactValid,
+} from '../components/landing/ContactField';
 import { fireAnalyticsEvent, getYandexCid } from '../hooks/useAnalyticsCounters';
 import { motion, AnimatePresence } from 'framer-motion';
 import DOMPurify from 'dompurify';
@@ -32,54 +39,6 @@ import { getApiErrorMessage } from '../utils/api-error';
 import { formatPrice } from '../utils/format';
 import { setFavicon, letterFaviconDataUri, roundedFaviconDataUri } from '../utils/favicon';
 import { useCurrency } from '../hooks/useCurrency';
-
-/** Похоже на телефон: цифры, пробелы, скобки и дефисы, начинается с + или цифры. */
-function looksLikePhone(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) return false;
-  if (!/^[+\d]/.test(trimmed)) return false;
-  return /^\+?[\d\s()-]+$/.test(trimmed);
-}
-
-function detectContactType(value: string): 'email' | 'telegram' | 'phone' {
-  const trimmed = value.trim();
-  if (trimmed.startsWith('@')) return 'telegram';
-  if (looksLikePhone(trimmed)) return 'phone';
-  return 'email';
-}
-
-function isValidContact(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) return false;
-
-  if (trimmed.startsWith('@')) {
-    return trimmed.length >= 4;
-  }
-  if (looksLikePhone(trimmed)) {
-    // Российский номер: 11 цифр с кодом страны либо 10 без него.
-    const digits = trimmed.replace(/\D/g, '');
-    return digits.length === 11
-      ? /^[78]/.test(digits)
-      : digits.length === 10 && digits.startsWith('9');
-  }
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
-}
-
-/** Форматирование номера на лету — как на странице входа: +7 999 123-45-67. */
-function formatContactInput(value: string): string {
-  if (!looksLikePhone(value)) return value;
-
-  let digits = value.replace(/\D/g, '');
-  if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) digits = digits.slice(1);
-  digits = digits.slice(0, 10);
-  if (!digits) return value.trim().startsWith('+') ? '+7 ' : value;
-
-  let out = `+7 ${digits.slice(0, 3)}`;
-  if (digits.length > 3) out += ` ${digits.slice(3, 6)}`;
-  if (digits.length > 6) out += `-${digits.slice(6, 8)}`;
-  if (digits.length > 8) out += `-${digits.slice(8, 10)}`;
-  return out;
-}
 
 function formatPeriodLabel(
   days: number,
@@ -203,19 +162,27 @@ function GiftToggle({ isGift, onToggle }: { isGift: boolean; onToggle: (v: boole
 }
 
 function ContactForm({
-  contactValue,
-  onContactChange,
+  contactType,
+  onContactTypeChange,
+  contacts,
+  onContactsChange,
   isGift,
-  giftRecipient,
-  onGiftRecipientChange,
+  giftType,
+  onGiftTypeChange,
+  giftContacts,
+  onGiftContactsChange,
   giftMessage,
   onGiftMessageChange,
 }: {
-  contactValue: string;
-  onContactChange: (v: string) => void;
+  contactType: ContactType;
+  onContactTypeChange: (t: ContactType) => void;
+  contacts: ContactValues;
+  onContactsChange: (v: ContactValues) => void;
   isGift: boolean;
-  giftRecipient: string;
-  onGiftRecipientChange: (v: string) => void;
+  giftType: ContactType;
+  onGiftTypeChange: (t: ContactType) => void;
+  giftContacts: ContactValues;
+  onGiftContactsChange: (v: ContactValues) => void;
   giftMessage: string;
   onGiftMessageChange: (v: string) => void;
 }) {
@@ -223,24 +190,14 @@ function ContactForm({
 
   return (
     <div className="space-y-4 rounded-2xl border border-dark-800/50 bg-dark-900/50 p-5">
-      {/* Main contact */}
-      <div>
-        <label htmlFor="contact-input" className="mb-2 block text-sm font-medium text-dark-200">
-          {t('landing.yourContact', 'Your contact')}
-        </label>
-        <input
-          id="contact-input"
-          type="text"
-          value={contactValue}
-          onChange={(e) => onContactChange(formatContactInput(e.target.value))}
-          placeholder={t(
-            'landing.contactPlaceholder',
-            'email@example.com, +7 999 123-45-67 или @telegram',
-          )}
-          className="w-full rounded-xl border border-dark-700/50 bg-dark-800/50 px-4 py-3 text-sm text-dark-50 placeholder-dark-500 outline-none transition-colors focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/25"
-        />
-        <p className="mt-1.5 text-xs text-dark-500">{t('landing.contactHint')}</p>
-      </div>
+      <ContactField
+        id="contact-input"
+        label={t('landing.yourContact', 'Введите ваш идентификатор')}
+        type={contactType}
+        onTypeChange={onContactTypeChange}
+        values={contacts}
+        onChange={onContactsChange}
+      />
 
       {/* Gift fields */}
       <AnimatePresence mode="wait">
@@ -253,22 +210,14 @@ function ContactForm({
             className="space-y-4 overflow-hidden"
           >
             <div className="border-t border-dark-800/50 pt-4">
-              <label
-                htmlFor="gift-recipient-input"
-                className="mb-2 block text-sm font-medium text-dark-200"
-              >
-                {t('landing.recipientLabel')}
-              </label>
-              <input
+              <ContactField
                 id="gift-recipient-input"
-                type="text"
-                value={giftRecipient}
-                onChange={(e) => onGiftRecipientChange(formatContactInput(e.target.value))}
-                placeholder={t(
-                  'landing.recipientPlaceholder',
-                  'Почта, телефон или @telegram получателя',
-                )}
-                className="w-full rounded-xl border border-dark-700/50 bg-dark-800/50 px-4 py-3 text-sm text-dark-50 placeholder-dark-500 outline-none transition-colors focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/25"
+                label={t('landing.recipientLabel')}
+                type={giftType}
+                onTypeChange={onGiftTypeChange}
+                values={giftContacts}
+                onChange={onGiftContactsChange}
+                hint={t('landing.recipientHint', 'Как получатель заберёт подарок')}
               />
             </div>
             <div>
@@ -282,11 +231,9 @@ function ContactForm({
                 id="gift-message-input"
                 value={giftMessage}
                 onChange={(e) => onGiftMessageChange(e.target.value)}
-                placeholder={t(
-                  'landing.giftMessagePlaceholder',
-                  'Add a personal message (optional)',
-                )}
-                rows={3}
+                rows={2}
+                maxLength={1000}
+                placeholder={t('landing.giftMessagePlaceholder')}
                 className="w-full resize-none rounded-xl border border-dark-700/50 bg-dark-800/50 px-4 py-3 text-sm text-dark-50 placeholder-dark-500 outline-none transition-colors focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/25"
               />
             </div>
@@ -907,16 +854,29 @@ export default function QuickPurchase() {
   // Selection state
   const [selectedTariffId, setSelectedTariffId] = useState<number | null>(null);
   const [selectedPeriodDays, setSelectedPeriodDays] = useState<number | null>(null);
+  // Контакты храним по вкладкам: переключение способа не должно стирать уже
+  // введённое. Восстанавливаем последнее значение, чтобы человек не набирал
+  // номер заново, вернувшись на страницу.
   const contactKey = `lp_contact_${slug ?? ''}`;
-  const [contactValue, setContactValue] = useState(() => {
+  const [contacts, setContacts] = useState<ContactValues>(() => {
     try {
-      return localStorage.getItem(contactKey) || '';
+      const saved = localStorage.getItem(contactKey);
+      return saved ? { ...EMPTY_CONTACTS, ...JSON.parse(saved) } : EMPTY_CONTACTS;
     } catch {
-      return '';
+      return EMPTY_CONTACTS;
+    }
+  });
+  const [contactType, setContactType] = useState<ContactType>(() => {
+    try {
+      const saved = localStorage.getItem(`${contactKey}_type`);
+      return saved === 'email' || saved === 'telegram' ? saved : 'phone';
+    } catch {
+      return 'phone';
     }
   });
   const [isGift, setIsGift] = useState(false);
-  const [giftRecipient, setGiftRecipient] = useState('');
+  const [giftContacts, setGiftContacts] = useState<ContactValues>(EMPTY_CONTACTS);
+  const [giftType, setGiftType] = useState<ContactType>('phone');
   const [giftMessage, setGiftMessage] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [selectedSubOption, setSelectedSubOption] = useState<string | null>(null);
@@ -1063,10 +1023,19 @@ export default function QuickPurchase() {
   // Validation
   const canSubmit = useMemo(() => {
     if (!selectedTariffId || !selectedPeriodDays || !selectedMethod) return false;
-    if (!isValidContact(contactValue)) return false;
-    if (isGift && !isValidContact(giftRecipient)) return false;
+    if (!isContactValid(contactType, contacts)) return false;
+    if (isGift && !isContactValid(giftType, giftContacts)) return false;
     return true;
-  }, [selectedTariffId, selectedPeriodDays, selectedMethod, contactValue, isGift, giftRecipient]);
+  }, [
+    selectedTariffId,
+    selectedPeriodDays,
+    selectedMethod,
+    contactType,
+    contacts,
+    isGift,
+    giftType,
+    giftContacts,
+  ]);
 
   // Purchase mutation
   const purchaseMutation = useMutation({
@@ -1105,17 +1074,17 @@ export default function QuickPurchase() {
     const data: PurchaseRequest = {
       tariff_id: selectedTariffId!,
       period_days: selectedPeriodDays!,
-      contact_type: detectContactType(contactValue),
-      contact_value: contactValue.trim(),
+      contact_type: contactType,
+      contact_value: contactPayload(contactType, contacts),
       payment_method: paymentMethod,
       language: i18n.language,
       is_gift: isGift,
       referrer: sessionStorage.getItem('landing_referrer') || undefined,
     };
 
-    if (isGift && giftRecipient) {
-      data.gift_recipient_type = detectContactType(giftRecipient);
-      data.gift_recipient_value = giftRecipient.trim();
+    if (isGift && isContactValid(giftType, giftContacts)) {
+      data.gift_recipient_type = giftType;
+      data.gift_recipient_value = contactPayload(giftType, giftContacts);
       data.gift_message = giftMessage.trim() || undefined;
     }
 
@@ -1225,20 +1194,32 @@ export default function QuickPurchase() {
 
             {/* Contact form */}
             <ContactForm
-              contactValue={contactValue}
-              onContactChange={(v) => {
-                setContactValue(v);
+              contactType={contactType}
+              onContactTypeChange={(next) => {
+                setContactType(next);
                 try {
-                  localStorage.setItem(contactKey, v);
+                  localStorage.setItem(`${contactKey}_type`, next);
+                } catch {
+                  /* */
+                }
+                setSubmitError(null);
+              }}
+              contacts={contacts}
+              onContactsChange={(next) => {
+                setContacts(next);
+                try {
+                  localStorage.setItem(contactKey, JSON.stringify(next));
                 } catch {
                   /* */
                 }
                 setSubmitError(null);
               }}
               isGift={isGift}
-              giftRecipient={giftRecipient}
-              onGiftRecipientChange={(v) => {
-                setGiftRecipient(v);
+              giftType={giftType}
+              onGiftTypeChange={setGiftType}
+              giftContacts={giftContacts}
+              onGiftContactsChange={(next) => {
+                setGiftContacts(next);
                 setSubmitError(null);
               }}
               giftMessage={giftMessage}

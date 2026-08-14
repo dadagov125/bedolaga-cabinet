@@ -4871,7 +4871,7 @@
     "forMe": "为自己",
     "asGift": "作为礼物",
     "contactLabel": "您的邮箱或 @用户名",
-    "yourContact": "您的邮箱或 @用户名",
+    "yourContact": "请输入您的标识",
     "contactPlaceholder": "email@example.com、+7 999 123-45-67 或 @telegram",
     "contactHint": "邮箱、手机号或 Telegram @username——用它登录",
     "recipientLabel": "赠送对象",
@@ -4951,7 +4951,23 @@
       "hours": "小时",
       "minutes": "分钟",
       "seconds": "秒"
-    }
+    },
+    "contactTabs": {
+      "phone": "手机号",
+      "email": "邮箱",
+      "telegram": "Telegram"
+    },
+    "contactPlaceholders": {
+      "phone": "+7 999 123-45-67",
+      "email": "email@example.com",
+      "telegram": "@username"
+    },
+    "contactHints": {
+      "phone": "用该号码登录——通过来电确认",
+      "email": "访问信息发送到此邮箱，并用它登录",
+      "telegram": "您的 Telegram @username——访问信息发送到机器人"
+    },
+    "recipientHint": "收礼人如何领取礼物"
   },
   "gift": {
     "title": "赠送订阅",
