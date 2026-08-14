@@ -4972,7 +4972,8 @@
     "keyForPhone": "访问权限已绑定到 {{contact}}——用该号码登录即可找回订阅",
     "paymentNotCompleted": "付款未完成",
     "paymentNotCompletedDesc": "我们没有看到付款。如果您已取消，可重新选择套餐；如果刚刚付款，请点击「再次检查」——银行有时确认较慢。",
-    "recheckPayment": "再次检查"
+    "recheckPayment": "再次检查",
+    "resumePayment": "返回付款"
   },
   "gift": {
     "title": "赠送订阅",

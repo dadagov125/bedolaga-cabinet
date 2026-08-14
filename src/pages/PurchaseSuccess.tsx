@@ -21,11 +21,13 @@ function PendingState({
   stalled,
   onRecheck,
   isRechecking,
+  resumePaymentHref,
 }: {
   backHref: string;
   stalled: boolean;
   onRecheck: () => void;
   isRechecking: boolean;
+  resumePaymentHref: string | null;
 }) {
   const { t } = useTranslation();
 
@@ -57,11 +59,26 @@ function PendingState({
           </p>
         </div>
         <div className="flex w-full flex-col gap-2">
+          {/* Главное действие для того, кто вышел из оплаты случайно: та же
+              форма, тот же платёж — вводить ничего заново не нужно. */}
+          {resumePaymentHref && (
+            <a
+              href={resumePaymentHref}
+              className="w-full rounded-xl bg-accent-500 px-6 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-400"
+            >
+              {t('landing.resumePayment', 'Вернуться к оплате')}
+            </a>
+          )}
           <button
             type="button"
             onClick={onRecheck}
             disabled={isRechecking}
-            className="w-full rounded-xl bg-accent-500 px-6 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-60"
+            className={cn(
+              'w-full rounded-xl px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-60',
+              resumePaymentHref
+                ? 'bg-dark-800/50 text-dark-200 hover:bg-dark-700/50'
+                : 'bg-accent-500 text-on-accent hover:bg-accent-400',
+            )}
           >
             {isRechecking
               ? t('common.loading', 'Загрузка...')
@@ -788,6 +805,21 @@ export default function PurchaseSuccess() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Ссылка на форму оплаты этого же платежа, если она ещё жива. У ЮKassa она
+  // действует, пока платёж в pending — около четверти часа.
+  const resumePaymentHref = (() => {
+    if (!token) return null;
+    try {
+      const raw = sessionStorage.getItem(`landing_payment_${token}`);
+      if (!raw) return null;
+      const saved = JSON.parse(raw) as { url?: string; at?: number };
+      if (!saved.url || !saved.at) return null;
+      return Date.now() - saved.at < 15 * 60 * 1000 ? saved.url : null;
+    } catch {
+      return null;
+    }
+  })();
+
   // Ссылка «вернуться к выбору тарифа» на экране ожидания.
   const backHref = (() => {
     try {
@@ -971,6 +1003,7 @@ export default function PurchaseSuccess() {
               void refetch();
             }}
             isRechecking={isFetching}
+            resumePaymentHref={resumePaymentHref}
           />
         )}
       </div>

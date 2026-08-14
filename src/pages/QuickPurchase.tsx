@@ -1041,6 +1041,17 @@ export default function QuickPurchase() {
   const purchaseMutation = useMutation({
     mutationFn: (data: PurchaseRequest) => landingApi.createPurchase(slug!, data),
     onSuccess: (result) => {
+      // Ссылка на форму оплаты живёт, пока платёж у провайдера в pending.
+      // Сохраняем её: тот, кто вышел из оплаты случайно, сможет вернуться
+      // одним нажатием, а не вводить всё заново и плодить новые платежи.
+      try {
+        sessionStorage.setItem(
+          `landing_payment_${result.purchase_token}`,
+          JSON.stringify({ url: result.payment_url, at: Date.now() }),
+        );
+      } catch {
+        /* приватный режим */
+      }
       window.location.href = result.payment_url;
       // If redirect blocked (popup blocker etc.), reset after 5s
       redirectTimeoutRef.current = setTimeout(() => setIsSubmitting(false), 5000);
