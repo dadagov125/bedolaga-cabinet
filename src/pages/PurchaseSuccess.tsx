@@ -108,9 +108,17 @@ function PendingState({
         </h1>
         <p className="mt-2 text-sm text-dark-400">{t('landing.awaitingPaymentDesc')}</p>
       </div>
-      {/* Выход из тупика: человек мог закрыть окно оплаты или нажать «отмена»,
-          и тогда ждать ему нечего. Без этой ссылки страница выглядит как
-          зависшая — уходить некуда, кнопок нет. */}
+      {/* Два выхода прямо здесь, не дожидаясь «зависшего» состояния. Вернуться
+          к оплате нужно сразу: чаще всего человек закрыл окно случайно, и
+          заставлять его ждать полторы минуты — терять оплату. */}
+      {resumePaymentHref && (
+        <a
+          href={resumePaymentHref}
+          className="w-full rounded-xl bg-accent-500 px-6 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-400"
+        >
+          {t('landing.resumePayment', 'Вернуться к оплате')}
+        </a>
+      )}
       <a
         href={backHref}
         className="text-sm text-accent-400 underline underline-offset-2 transition-colors hover:text-accent-300"
