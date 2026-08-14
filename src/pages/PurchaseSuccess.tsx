@@ -16,8 +16,67 @@ import { cn } from '../lib/utils';
 
 const MAX_POLL_MS = 10 * 60 * 1000; // 10 minutes
 
-function PendingState({ backHref }: { backHref: string }) {
+function PendingState({
+  backHref,
+  stalled,
+  onRecheck,
+  isRechecking,
+}: {
+  backHref: string;
+  stalled: boolean;
+  onRecheck: () => void;
+  isRechecking: boolean;
+}) {
   const { t } = useTranslation();
+
+  // Кнопка «выйти из оплаты» на форме ЮKassa ведёт на этот же адрес, что и
+  // успешная оплата. То есть сюда одинаково попадают и тот, кто заплатил, и
+  // тот, кто передумал, — а платёж у провайдера ещё висит в pending и вебхука
+  // об отмене может не быть вовсе. Поэтому через полторы минуты перестаём
+  // делать вид, что ждём, и предлагаем оба выхода. Опрос при этом продолжается:
+  // если человек всё же дооплатил в другой вкладке, страница сама переключится.
+  if (stalled) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center gap-6 text-center"
+      >
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-dark-800/50">
+          <ClockIcon className="h-10 w-10 text-dark-400" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-dark-50">
+            {t('landing.paymentNotCompleted', 'Оплата не завершена')}
+          </h1>
+          <p className="mt-2 text-sm text-dark-400">
+            {t(
+              'landing.paymentNotCompletedDesc',
+              'Мы не увидели оплату. Если вы её отменили — можно выбрать тариф заново. Если оплатили только что, нажмите «Проверить снова»: иногда банк подтверждает платёж с задержкой.',
+            )}
+          </p>
+        </div>
+        <div className="flex w-full flex-col gap-2">
+          <button
+            type="button"
+            onClick={onRecheck}
+            disabled={isRechecking}
+            className="w-full rounded-xl bg-accent-500 px-6 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-400 disabled:opacity-60"
+          >
+            {isRechecking
+              ? t('common.loading', 'Загрузка...')
+              : t('landing.recheckPayment', 'Проверить снова')}
+          </button>
+          <a
+            href={backHref}
+            className="w-full rounded-xl bg-dark-800/50 px-6 py-3 text-sm font-medium text-dark-200 transition-colors hover:bg-dark-700/50"
+          >
+            {t('landing.paymentCancelledBack', 'Отменили оплату? Вернуться к выбору тарифа')}
+          </a>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -720,6 +779,15 @@ export default function PurchaseSuccess() {
 
   const queryClient = useQueryClient();
 
+  // Сколько ждём, прежде чем признать, что оплаты, скорее всего, не будет.
+  // Полторы минуты: успешный платёж подтверждается за секунды, а дольше висит
+  // только брошенный.
+  const [paymentStalled, setPaymentStalled] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setPaymentStalled(true), 90_000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Ссылка «вернуться к выбору тарифа» на экране ожидания.
   const backHref = (() => {
     try {
@@ -733,6 +801,7 @@ export default function PurchaseSuccess() {
   const {
     data: purchaseStatus,
     isError,
+    isFetching,
     refetch,
   } = useQuery({
     queryKey: ['purchase-status', token],
@@ -895,7 +964,14 @@ export default function PurchaseSuccess() {
         ) : pollTimedOut ? (
           <PollTimedOutState onRetry={handleRetryPoll} />
         ) : (
-          <PendingState backHref={backHref} />
+          <PendingState
+            backHref={backHref}
+            stalled={paymentStalled}
+            onRecheck={() => {
+              void refetch();
+            }}
+            isRechecking={isFetching}
+          />
         )}
       </div>
     </div>

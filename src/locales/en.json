@@ -5423,7 +5423,10 @@
     "paymentCancelledBack": "Cancelled the payment? Back to plans",
     "openSubscription": "Set up VPN",
     "openSubscriptionHint": "Opens the subscription page with setup steps for your device. On a phone you can simply scan the code below.",
-    "keyForPhone": "Access is linked to {{contact}} — sign in with that number to get back to your subscription"
+    "keyForPhone": "Access is linked to {{contact}} — sign in with that number to get back to your subscription",
+    "paymentNotCompleted": "Payment not completed",
+    "paymentNotCompletedDesc": "We haven't seen the payment. If you cancelled it, pick a plan again. If you just paid, tap “Check again” — banks sometimes confirm with a delay.",
+    "recheckPayment": "Check again"
   },
   "coupon": {
     "title": "Subscription coupon",
