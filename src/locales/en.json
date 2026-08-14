@@ -5419,7 +5419,11 @@
       "email": "Access is sent here, and you sign in with it",
       "telegram": "Your Telegram @username — access arrives in the bot"
     },
-    "recipientHint": "How the recipient will claim the gift"
+    "recipientHint": "How the recipient will claim the gift",
+    "paymentCancelledBack": "Cancelled the payment? Back to plans",
+    "openSubscription": "Set up VPN",
+    "openSubscriptionHint": "Opens the subscription page with setup steps for your device. On a phone you can simply scan the code below.",
+    "keyForPhone": "Access is linked to {{contact}} — sign in with that number to get back to your subscription"
   },
   "coupon": {
     "title": "Subscription coupon",

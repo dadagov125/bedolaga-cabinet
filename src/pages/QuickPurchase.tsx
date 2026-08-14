@@ -1061,6 +1061,15 @@ export default function QuickPurchase() {
 
     fireAnalyticsEvent('purchase_click');
 
+    // Куда возвращать со страницы результата, если оплату отменили: адрес
+    // лендинга в самой покупке не хранится, а отправлять человека на голый
+    // домен — терять выбранный тариф.
+    try {
+      if (slug) sessionStorage.setItem('landing_last_slug', slug);
+    } catch {
+      /* приватный режим */
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 

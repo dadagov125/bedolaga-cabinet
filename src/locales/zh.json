@@ -4965,7 +4965,11 @@
       "email": "访问信息发送到此邮箱，并用它登录",
       "telegram": "您的 Telegram @username——访问信息发送到机器人"
     },
-    "recipientHint": "收礼人如何领取礼物"
+    "recipientHint": "收礼人如何领取礼物",
+    "paymentCancelledBack": "取消了付款？返回选择套餐",
+    "openSubscription": "开始使用 VPN",
+    "openSubscriptionHint": "将打开订阅页面，内含适用于您设备的设置说明。用手机可直接扫描下方二维码。",
+    "keyForPhone": "访问权限已绑定到 {{contact}}——用该号码登录即可找回订阅"
   },
   "gift": {
     "title": "赠送订阅",

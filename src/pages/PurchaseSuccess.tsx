@@ -16,7 +16,7 @@ import { cn } from '../lib/utils';
 
 const MAX_POLL_MS = 10 * 60 * 1000; // 10 minutes
 
-function PendingState() {
+function PendingState({ backHref }: { backHref: string }) {
   const { t } = useTranslation();
 
   return (
@@ -32,6 +32,15 @@ function PendingState() {
         </h1>
         <p className="mt-2 text-sm text-dark-400">{t('landing.awaitingPaymentDesc')}</p>
       </div>
+      {/* Выход из тупика: человек мог закрыть окно оплаты или нажать «отмена»,
+          и тогда ждать ему нечего. Без этой ссылки страница выглядит как
+          зависшая — уходить некуда, кнопок нет. */}
+      <a
+        href={backHref}
+        className="text-sm text-accent-400 underline underline-offset-2 transition-colors hover:text-accent-300"
+      >
+        {t('landing.paymentCancelledBack', 'Отменили оплату? Вернуться к выбору тарифа')}
+      </a>
     </motion.div>
   );
 }
@@ -252,7 +261,11 @@ function SuccessState({
           <p className="mt-2 text-sm text-dark-400">
             {isGift
               ? t('landing.giftSentTo', { contact: displayContact })
-              : t('landing.keySentTo', { contact: displayContact })}
+              : contactType === 'phone'
+                ? // SMS мы не отправляем, обещать «ключ отправлен» нельзя:
+                  // доступ человек забирает здесь и в кабинете по номеру.
+                  t('landing.keyForPhone', { contact: displayContact })
+                : t('landing.keySentTo', { contact: displayContact })}
           </p>
         )}
         {isGift && giftMessage && (
@@ -272,6 +285,29 @@ function SuccessState({
         >
           {t('landing.openBot')}
         </a>
+      )}
+
+      {/* Что делать дальше. Раньше экран заканчивался QR-кодом и кнопкой
+          «скопировать ссылку»: человек оплатил и не понимал, куда её деть.
+          Основное действие — открыть страницу подключения, там уже есть
+          инструкция под каждое устройство. */}
+      {displayUrl && (
+        <div className="w-full space-y-3">
+          <a
+            href={displayUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-400"
+          >
+            {t('landing.openSubscription', 'Подключить VPN')}
+          </a>
+          <p className="text-center text-xs text-dark-400">
+            {t(
+              'landing.openSubscriptionHint',
+              'Откроется страница подписки с инструкцией для вашего устройства. С телефона можно просто отсканировать код ниже.',
+            )}
+          </p>
+        </div>
       )}
 
       {/* QR Code */}
@@ -684,6 +720,16 @@ export default function PurchaseSuccess() {
 
   const queryClient = useQueryClient();
 
+  // Ссылка «вернуться к выбору тарифа» на экране ожидания.
+  const backHref = (() => {
+    try {
+      const slug = sessionStorage.getItem('landing_last_slug');
+      return slug ? `/buy/${slug}` : '/';
+    } catch {
+      return '/';
+    }
+  })();
+
   const {
     data: purchaseStatus,
     isError,
@@ -849,7 +895,7 @@ export default function PurchaseSuccess() {
         ) : pollTimedOut ? (
           <PollTimedOutState onRetry={handleRetryPoll} />
         ) : (
-          <PendingState />
+          <PendingState backHref={backHref} />
         )}
       </div>
     </div>
