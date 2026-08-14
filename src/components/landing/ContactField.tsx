@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { extractPhoneDigits, formatPhoneDigits } from '../../utils/phone';
 
 /**
  * Ввод контакта одним из трёх способов: телефон, почта, Telegram.
@@ -9,6 +10,8 @@ import { useTranslation } from 'react-i18next';
  *
  * Значения трёх вкладок независимы: переключение не стирает уже введённое.
  */
+export { extractPhoneDigits, formatPhoneDigits };
+
 export type ContactType = 'phone' | 'email' | 'telegram';
 
 export interface ContactValues {
@@ -18,34 +21,6 @@ export interface ContactValues {
 }
 
 export const EMPTY_CONTACTS: ContactValues = { phone: '', email: '', telegram: '' };
-
-/**
- * Цифры национального номера из произвольного ввода.
- *
- * Ключевая деталь: состояние хранит ТОЛЬКО цифры, а на экран отдаётся
- * отформатированная строка. Прошлая версия форматировала «строку в строку», и
- * семёрка из префикса «+7» при каждом вводе снова попадала в разбор — цифры
- * затирались, а стереть их по одной было нельзя. Здесь префикс отбрасывается
- * до разбора, поэтому и ввод, и удаление ведут себя предсказуемо.
- */
-export function extractPhoneDigits(input: string): string {
-  let digits = input.replace(/\D/g, '');
-  // Номер, вставленный из буфера, обычно идёт с кодом страны.
-  if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) {
-    digits = digits.slice(1);
-  }
-  return digits.slice(0, 10);
-}
-
-/** 9991234567 → +7 999 123-45-67 */
-export function formatPhoneDigits(digits: string): string {
-  if (!digits) return '';
-  let out = `+7 ${digits.slice(0, 3)}`;
-  if (digits.length > 3) out += ` ${digits.slice(3, 6)}`;
-  if (digits.length > 6) out += `-${digits.slice(6, 8)}`;
-  if (digits.length > 8) out += `-${digits.slice(8, 10)}`;
-  return out;
-}
 
 /** Значение, которое уходит на сервер для выбранной вкладки. */
 export function contactPayload(type: ContactType, values: ContactValues): string {

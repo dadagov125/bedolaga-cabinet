@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CopyIcon, CheckIcon } from '@/components/icons';
 import { copyToClipboard } from '../../utils/clipboard';
-import { formatPhoneNumber } from '../../utils/phone';
+import { extractPhoneDigits, formatPhoneDigits, formatPhoneNumber } from '../../utils/phone';
 import type { PhoneCallStart } from '../../api/auth';
 
 /**
@@ -40,15 +40,6 @@ const HARD_STOP_MS = 10 * 60 * 1000;
 /** Телефон, а не планшет и не десктоп: только там tel: ведёт в звонилку. */
 const isPhone = () =>
   typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-
-const formatPhone = (digits: string) => {
-  const d = digits.slice(0, 10);
-  let out = d.slice(0, 3);
-  if (d.length > 3) out += ` ${d.slice(3, 6)}`;
-  if (d.length > 6) out += `-${d.slice(6, 8)}`;
-  if (d.length > 8) out += `-${d.slice(8, 10)}`;
-  return out;
-};
 
 export default function PhoneCallVerification({
   start,
@@ -95,19 +86,16 @@ export default function PhoneCallVerification({
     if (storageKey) sessionStorage.removeItem(storageKey);
   }, [storageKey]);
 
+  // Разбор и форматирование — общие с формой покупки (utils/phone), чтобы поле
+  // вело себя одинаково и чинилось в одном месте: своя копия логики здесь уже
+  // приводила к разъехавшемуся поведению.
   const handleInput = (value: string) => {
-    // Префикс +7 нарисован в самом значении, а не отдельным блоком слева:
-    // так поле остаётся штатным .input и не ломается в светлой теме.
-    const raw = value.startsWith('+7') ? value.slice(2) : value;
-    let d = raw.replace(/\D/g, '');
-    // Вставленный из буфера номер часто идёт с кодом страны — срезаем.
-    if (d.length === 11 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);
-    setDigits(d.slice(0, 10));
+    setDigits(extractPhoneDigits(value));
   };
 
   // Пока в поле нет ни одной цифры и оно не в фокусе — показываем плейсхолдер,
   // иначе «+7 » стоит в значении всегда.
-  const inputValue = digits || focused ? `+7 ${formatPhone(digits)}` : '';
+  const inputValue = digits ? formatPhoneDigits(digits) : focused ? '+7 ' : '';
   const countdown = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`;
 
   const handleStart = async () => {
@@ -379,7 +367,7 @@ export default function PhoneCallVerification({
       {digits.length === 10 && (
         <p className="text-xs text-dark-500">
           {t('auth.phoneCallFromNumber', {
-            phone: `+7 ${formatPhone(digits)}`,
+            phone: formatPhoneDigits(digits),
             defaultValue: 'Звоните с номера {{phone}}',
           })}
         </p>
