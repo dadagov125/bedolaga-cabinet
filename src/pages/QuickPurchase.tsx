@@ -33,8 +33,19 @@ import { formatPrice } from '../utils/format';
 import { setFavicon, letterFaviconDataUri, roundedFaviconDataUri } from '../utils/favicon';
 import { useCurrency } from '../hooks/useCurrency';
 
-function detectContactType(value: string): 'email' | 'telegram' {
-  return value.startsWith('@') ? 'telegram' : 'email';
+/** Похоже на телефон: цифры, пробелы, скобки и дефисы, начинается с + или цифры. */
+function looksLikePhone(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (!/^[+\d]/.test(trimmed)) return false;
+  return /^\+?[\d\s()-]+$/.test(trimmed);
+}
+
+function detectContactType(value: string): 'email' | 'telegram' | 'phone' {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('@')) return 'telegram';
+  if (looksLikePhone(trimmed)) return 'phone';
+  return 'email';
 }
 
 function isValidContact(value: string): boolean {
@@ -44,7 +55,30 @@ function isValidContact(value: string): boolean {
   if (trimmed.startsWith('@')) {
     return trimmed.length >= 4;
   }
+  if (looksLikePhone(trimmed)) {
+    // Российский номер: 11 цифр с кодом страны либо 10 без него.
+    const digits = trimmed.replace(/\D/g, '');
+    return digits.length === 11
+      ? /^[78]/.test(digits)
+      : digits.length === 10 && digits.startsWith('9');
+  }
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+/** Форматирование номера на лету — как на странице входа: +7 999 123-45-67. */
+function formatContactInput(value: string): string {
+  if (!looksLikePhone(value)) return value;
+
+  let digits = value.replace(/\D/g, '');
+  if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) digits = digits.slice(1);
+  digits = digits.slice(0, 10);
+  if (!digits) return value.trim().startsWith('+') ? '+7 ' : value;
+
+  let out = `+7 ${digits.slice(0, 3)}`;
+  if (digits.length > 3) out += ` ${digits.slice(3, 6)}`;
+  if (digits.length > 6) out += `-${digits.slice(6, 8)}`;
+  if (digits.length > 8) out += `-${digits.slice(8, 10)}`;
+  return out;
 }
 
 function formatPeriodLabel(
@@ -198,8 +232,11 @@ function ContactForm({
           id="contact-input"
           type="text"
           value={contactValue}
-          onChange={(e) => onContactChange(e.target.value)}
-          placeholder={t('landing.contactPlaceholder', 'email@example.com or @telegram')}
+          onChange={(e) => onContactChange(formatContactInput(e.target.value))}
+          placeholder={t(
+            'landing.contactPlaceholder',
+            'email@example.com, +7 999 123-45-67 или @telegram',
+          )}
           className="w-full rounded-xl border border-dark-700/50 bg-dark-800/50 px-4 py-3 text-sm text-dark-50 placeholder-dark-500 outline-none transition-colors focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/25"
         />
         <p className="mt-1.5 text-xs text-dark-500">{t('landing.contactHint')}</p>
@@ -226,8 +263,11 @@ function ContactForm({
                 id="gift-recipient-input"
                 type="text"
                 value={giftRecipient}
-                onChange={(e) => onGiftRecipientChange(e.target.value)}
-                placeholder={t('landing.recipientPlaceholder', 'Recipient email or @telegram')}
+                onChange={(e) => onGiftRecipientChange(formatContactInput(e.target.value))}
+                placeholder={t(
+                  'landing.recipientPlaceholder',
+                  'Почта, телефон или @telegram получателя',
+                )}
                 className="w-full rounded-xl border border-dark-700/50 bg-dark-800/50 px-4 py-3 text-sm text-dark-50 placeholder-dark-500 outline-none transition-colors focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/25"
               />
             </div>

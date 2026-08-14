@@ -48,7 +48,7 @@ export interface GiftConfig {
 export interface GiftPurchaseRequest {
   tariff_id: number;
   period_days: number;
-  recipient_type?: 'email' | 'telegram';
+  recipient_type?: 'email' | 'telegram' | 'phone';
   recipient_value?: string;
   gift_message?: string;
   payment_mode: 'balance' | 'gateway';

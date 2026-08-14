@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { PhoneIcon } from '../components/ProviderIcon';
+import { formatPhoneNumber } from '../utils/phone';
 import { Cell, Funnel, FunnelChart, LabelList, ResponsiveContainer } from 'recharts';
 import {
   adminLandingsApi,
@@ -59,15 +61,19 @@ const PURCHASE_STATUS_OPTIONS: Array<PurchaseItemStatus | 'all'> = [
 const PURCHASES_PAGE_SIZE = 20;
 
 // Contact display helper
-function ContactDisplay({ type, value }: { type: 'email' | 'telegram'; value: string }) {
+function ContactDisplay({ type, value }: { type: 'email' | 'telegram' | 'phone'; value: string }) {
   return (
     <span className="flex items-center gap-1 text-dark-300">
       {type === 'email' ? (
         <EmailIcon className="h-3.5 w-3.5" />
+      ) : type === 'phone' ? (
+        <PhoneIcon className="h-3.5 w-3.5" />
       ) : (
         <TelegramSmallIcon className="h-3.5 w-3.5" />
       )}
-      <span className="min-w-0 truncate text-xs">{value}</span>
+      <span className="min-w-0 truncate text-xs">
+        {type === 'phone' ? formatPhoneNumber(value) : value}
+      </span>
     </span>
   );
 }

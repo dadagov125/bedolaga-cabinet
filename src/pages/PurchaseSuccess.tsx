@@ -566,7 +566,7 @@ function GiftLinkShareState({
   tariffName: string | null;
   periodDays: number | null;
   recipientContactValue: string | null;
-  contactType: 'email' | 'telegram' | null;
+  contactType: 'email' | 'telegram' | 'phone' | null;
 }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);

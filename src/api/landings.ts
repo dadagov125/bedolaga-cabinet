@@ -102,11 +102,11 @@ export interface LandingConfig {
 export interface PurchaseRequest {
   tariff_id: number;
   period_days: number;
-  contact_type: 'email' | 'telegram';
+  contact_type: 'email' | 'telegram' | 'phone';
   contact_value: string;
   payment_method: string;
   is_gift: boolean;
-  gift_recipient_type?: 'email' | 'telegram';
+  gift_recipient_type?: 'email' | 'telegram' | 'phone';
   gift_recipient_value?: string;
   gift_message?: string;
   language?: string;
@@ -131,7 +131,7 @@ export interface PurchaseStatus {
   period_days: number | null;
   tariff_name: string | null;
   gift_message: string | null;
-  contact_type: 'email' | 'telegram' | null;
+  contact_type: 'email' | 'telegram' | 'phone' | null;
   cabinet_email: string | null;
   cabinet_password: string | null;
   auto_login_token: string | null;
@@ -364,10 +364,10 @@ export type PurchaseItemStatus =
 export interface LandingPurchaseItem {
   id: number;
   token: string;
-  contact_type: 'email' | 'telegram';
+  contact_type: 'email' | 'telegram' | 'phone';
   contact_value: string;
   is_gift: boolean;
-  gift_recipient_type: 'email' | 'telegram' | null;
+  gift_recipient_type: 'email' | 'telegram' | 'phone' | null;
   gift_recipient_value: string | null;
   tariff_name: string;
   period_days: number;
