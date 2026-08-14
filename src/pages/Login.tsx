@@ -166,9 +166,15 @@ export default function Login() {
     if (savedUrl && savedUrl !== '/login') {
       return savedUrl;
     }
+    // Пришёл с витрины по кнопке «Попробовать бесплатно» — ведём сразу туда, где
+    // выдаётся пробный период. Иначе человек попадает на общую страницу и ищет
+    // кнопку сам, хотя только что нажал ровно на неё.
+    if (new URLSearchParams(location.search).get('trial') === '1') {
+      return '/subscription';
+    }
     // По умолчанию на главную
     return '/';
-  }, [location.state]);
+  }, [location.state, location.search]);
 
   // Fetch branding with unified cache
   const cachedBranding = useMemo(() => getCachedBranding(), []);
