@@ -4872,8 +4872,6 @@
     "asGift": "作为礼物",
     "contactLabel": "您的邮箱或 @用户名",
     "yourContact": "请输入您的标识",
-    "contactPlaceholder": "email@example.com、+7 999 123-45-67 或 @telegram",
-    "contactHint": "邮箱、手机号或 Telegram @username——用它登录",
     "recipientLabel": "赠送对象",
     "recipientPlaceholder": "收件人的邮箱、手机号或 @telegram",
     "giftMessageLabel": "祝福语（可选）",
@@ -4958,7 +4956,7 @@
       "telegram": "Telegram"
     },
     "contactPlaceholders": {
-      "phone": "+7 999 123-45-67",
+      "phone": "+7 ___ ___-__-__",
       "email": "email@example.com",
       "telegram": "@username"
     },

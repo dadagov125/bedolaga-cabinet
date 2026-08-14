@@ -124,7 +124,7 @@ export default function ContactField({
           autoComplete="tel"
           value={formatPhoneDigits(values.phone)}
           onChange={(e) => onChange({ ...values, phone: extractPhoneDigits(e.target.value) })}
-          placeholder={t('landing.contactPlaceholders.phone', '+7 999 123-45-67')}
+          placeholder={t('landing.contactPlaceholders.phone', '+7 ___ ___-__-__')}
           className={inputClass}
         />
       )}

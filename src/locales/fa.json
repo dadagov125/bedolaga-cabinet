@@ -4873,8 +4873,6 @@
     "asGift": "به عنوان هدیه",
     "contactLabel": "ایمیل یا @نام کاربری شما",
     "yourContact": "شناسه خود را وارد کنید",
-    "contactPlaceholder": "email@example.com، ‎+7 999 123-45-67 یا ‎@telegram",
-    "contactHint": "ایمیل، شماره تلفن یا ‎@username تلگرام — با همان وارد می‌شوید",
     "recipientLabel": "گیرنده هدیه",
     "recipientPlaceholder": "ایمیل، تلفن یا ‎@telegram گیرنده",
     "giftMessageLabel": "پیام تبریک (اختیاری)",
@@ -4959,7 +4957,7 @@
       "telegram": "تلگرام"
     },
     "contactPlaceholders": {
-      "phone": "+7 999 123-45-67",
+      "phone": "+7 ___ ___-__-__",
       "email": "email@example.com",
       "telegram": "@username"
     },

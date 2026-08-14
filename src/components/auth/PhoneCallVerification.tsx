@@ -287,7 +287,7 @@ export default function PhoneCallVerification({
             inputMode="numeric"
             autoComplete="tel"
             className="input"
-            placeholder="+7 999 123-45-67"
+            placeholder="+7 ___ ___-__-__"
             value={inputValue}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}

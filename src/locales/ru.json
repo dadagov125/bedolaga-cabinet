@@ -5869,8 +5869,6 @@
     "asGift": "В подарок",
     "contactLabel": "Ваш email или @username Telegram",
     "yourContact": "Введите ваш идентификатор",
-    "contactPlaceholder": "email@example.com, +7 999 123-45-67 или @telegram",
-    "contactHint": "Почта, номер телефона или Telegram @username — по нему вы войдёте в кабинет",
     "recipientLabel": "Кому подарить",
     "recipientPlaceholder": "Почта, телефон или @telegram получателя",
     "giftMessageLabel": "Поздравление (необязательно)",
@@ -5961,7 +5959,7 @@
       "telegram": "Telegram"
     },
     "contactPlaceholders": {
-      "phone": "+7 999 123-45-67",
+      "phone": "+7 ___ ___-__-__",
       "email": "email@example.com",
       "telegram": "@username"
     },
