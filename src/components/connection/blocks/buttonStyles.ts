@@ -4,6 +4,12 @@
  * latter adapts to exactly the same visual language as the styles coming from
  * the subscription-page config — no divergent one-off button styles.
  */
+/** Заливная кнопка для главного действия шага («Добавить подписку»). Обводка
+ *  читается как ссылка, и люди её не нажимают — на этом мы уже спотыкались. */
+export function blockPrimaryButtonClass(): string {
+  return 'w-full justify-center rounded-xl bg-accent-500 px-4 py-3 text-[15px] font-semibold text-on-accent shadow-lg shadow-accent-500/25 transition-all hover:bg-accent-400 active:scale-[0.99]';
+}
+
 export function blockButtonClass(variant: 'light' | 'subtle', isLight?: boolean): string {
   if (variant === 'light') {
     return isLight

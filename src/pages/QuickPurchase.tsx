@@ -34,6 +34,8 @@ import {
 } from '../components/backgrounds/BackgroundRenderer';
 import { CheckCircleIcon, CheckIcon, DevicesIcon, DownloadIcon } from '@/components/icons';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import PaymentMethodIcon from '@/components/PaymentMethodIcon';
+import { defaultSubOptionId, orderSubOptions } from '@/utils/paymentSubOptions';
 import { cn } from '../lib/utils';
 import { getApiErrorMessage } from '../utils/api-error';
 import { formatPrice } from '../utils/format';
@@ -358,12 +360,15 @@ function PaymentMethodCard({
         onClick={onSelect}
         className="flex w-full items-center gap-4 p-4 text-start"
       >
-        {/* Icon */}
-        {method.icon_url && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-dark-800/50">
+        {/* Иконка шлюза: заданная в админке картинка, иначе встроенная по
+            идентификатору метода — без неё карточка выглядит безымянной строкой */}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-dark-800/50">
+          {method.icon_url ? (
             <img src={method.icon_url} alt="" className="h-6 w-6 object-contain" />
-          </div>
-        )}
+          ) : (
+            <PaymentMethodIcon method={method.method_id} className="h-7 w-7" />
+          )}
+        </div>
 
         {/* Text */}
         <div className="min-w-0 flex-1">
@@ -388,18 +393,19 @@ function PaymentMethodCard({
       {isSelected && hasSubOptions && (
         <div className="border-t border-dark-800/30 px-4 pb-4 pt-3">
           <div className="flex flex-wrap gap-2">
-            {method.sub_options!.map((opt) => (
+            {orderSubOptions(method.sub_options!).map((opt) => (
               <button
                 key={opt.id}
                 type="button"
                 onClick={() => onSelectSubOption(opt.id)}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200',
+                  'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200',
                   selectedSubOption === opt.id
                     ? 'bg-accent-500 text-on-accent shadow-sm shadow-accent-500/25'
                     : 'bg-dark-800/50 text-dark-300 hover:bg-dark-700/50 hover:text-dark-100',
                 )}
               >
+                <PaymentMethodIcon method={opt.id} className="h-5 w-5 shrink-0" />
                 {opt.name}
               </button>
             ))}
@@ -931,7 +937,7 @@ export default function QuickPurchase() {
       const firstMethod = config.payment_methods[0];
       setSelectedMethod(firstMethod.method_id);
       if (firstMethod.sub_options && firstMethod.sub_options.length >= 1) {
-        setSelectedSubOption(firstMethod.sub_options[0].id);
+        setSelectedSubOption(defaultSubOptionId(firstMethod.sub_options));
       } else {
         setSelectedSubOption(null);
       }
@@ -1296,7 +1302,7 @@ export default function QuickPurchase() {
                         setSelectedMethod(method.method_id);
                         // Auto-select first sub-option (even for single — backend needs suffix)
                         if (method.sub_options && method.sub_options.length >= 1) {
-                          setSelectedSubOption(method.sub_options[0].id);
+                          setSelectedSubOption(defaultSubOptionId(method.sub_options));
                         } else {
                           setSelectedSubOption(null);
                         }

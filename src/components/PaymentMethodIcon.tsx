@@ -119,6 +119,38 @@ export default function PaymentMethodIcon({
         </svg>
       );
 
+    // Под-способы оплаты внутри шлюза («Карта» / «СБП»). Рисуются в чипах
+    // выбора: текст рядом с иконкой человек считывает быстрее, чем один текст.
+    case 'sbp':
+      return (
+        <svg className={className} viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#1D1D3A" />
+          <path d="M11 13l4.6 7-4.6 7V13z" fill="#5B57D1" />
+          <path d="M15.6 20l4.6-7h5.2l-4.6 7h-5.2z" fill="#F6A623" />
+          <path d="M15.6 20l4.6 7h5.2l-4.6-7h-5.2z" fill="#3AA648" />
+          <path d="M26.4 13H31l-4.6 7 4.6 7h-4.6l-4.6-7 4.6-7z" fill="#12A2C8" />
+        </svg>
+      );
+
+    case 'card':
+      return (
+        <svg className={className} viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="20" fill="#2D3A5E" />
+          <rect
+            x="10"
+            y="14"
+            width="20"
+            height="13"
+            rx="2.5"
+            fill="none"
+            stroke="#fff"
+            strokeWidth="1.6"
+          />
+          <path d="M10 18.5h20" stroke="#fff" strokeWidth="1.6" />
+          <rect x="13" y="22" width="6" height="2" rx="1" fill="#fff" opacity=".7" />
+        </svg>
+      );
+
     case 'freekassa_sbp':
       return (
         <svg className={className} viewBox="0 0 40 40">

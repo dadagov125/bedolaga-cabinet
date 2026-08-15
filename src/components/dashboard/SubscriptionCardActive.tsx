@@ -10,7 +10,6 @@ import { useTheme } from '../../hooks/useTheme';
 import { useTrafficZone } from '../../hooks/useTrafficZone';
 import { formatTraffic } from '../../utils/formatTraffic';
 import { getGlassColors } from '../../utils/glassTheme';
-import { HoverBorderGradient } from '../ui/hover-border-gradient';
 import { CalendarIcon, RefreshIcon } from '@/components/icons';
 import { useHaptic } from '../../platform';
 import type { Subscription } from '../../types';
@@ -162,9 +161,12 @@ export default function SubscriptionCardActive({
 
       {/* ─── Connect Device Button ─── */}
       {subscription.subscription_url && (
-        <HoverBorderGradient
-          as="button"
-          accentColor={zone.mainHex}
+        // Главное действие новичка — «подключить устройство». Раньше это была
+        // карточка с тонкой рамкой, и люди просто не понимали, что на неё нужно
+        // нажать. Теперь это заливная кнопка: контраст говорит «нажми», а не
+        // «прочитай».
+        <button
+          type="button"
           disabled={isAtDeviceLimit}
           onClick={() => {
             if (isAtDeviceLimit) {
@@ -173,21 +175,25 @@ export default function SubscriptionCardActive({
             }
             navigate(`/connection?sub=${subscription.id}`);
           }}
-          className={`mb-2.5 flex w-full items-center gap-3.5 rounded-[14px] p-3.5 text-left transition-shadow duration-300${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
+          className={`mb-2.5 flex w-full items-center gap-3.5 rounded-[14px] p-3.5 text-left shadow-lg transition-all duration-300 active:scale-[0.99] ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : 'hover:brightness-110'}`}
           data-onboarding="connect-devices"
-          style={{ fontFamily: 'inherit' }}
+          style={{
+            fontFamily: 'inherit',
+            background: zone.mainVar,
+            boxShadow: `0 6px 20px rgba(${zone.mainVarRaw}, 0.35)`,
+          }}
         >
           {/* Monitor icon */}
           <div
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-500"
-            style={{ background: `rgba(${zone.mainVarRaw}, 0.07)` }}
+            style={{ background: 'rgba(255, 255, 255, 0.18)' }}
           >
             <svg
               width="16"
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={zone.mainVar}
+              stroke="rgb(var(--color-on-accent))"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -201,10 +207,10 @@ export default function SubscriptionCardActive({
 
           {/* Text */}
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold tracking-tight text-dark-50">
+            <div className="text-[15px] font-bold tracking-tight text-on-accent">
               {t('dashboard.connectDevice')}
             </div>
-            <div className="mt-0.5 text-[11px] text-dark-50/30">
+            <div className="mt-0.5 text-[11px] text-on-accent/70">
               {subscription.device_limit === 0
                 ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
                 : t('dashboard.devicesOfMax', {
@@ -225,7 +231,7 @@ export default function SubscriptionCardActive({
           {/* Device indicator */}
           {subscription.device_limit === 0 ? (
             <div
-              className="flex flex-shrink-0 items-center text-lg text-dark-50/40"
+              className="flex flex-shrink-0 items-center text-lg text-on-accent/80"
               aria-hidden="true"
             >
               ∞
@@ -237,9 +243,11 @@ export default function SubscriptionCardActive({
                   key={i}
                   className="h-[7px] w-[7px] rounded-full transition-all duration-300"
                   style={{
-                    background: i < connectedDevices ? zone.mainVar : g.textGhost,
-                    boxShadow:
-                      i < connectedDevices ? `0 0 6px rgba(${zone.mainVarRaw}, 0.31)` : 'none',
+                    background:
+                      i < connectedDevices
+                        ? 'rgb(var(--color-on-accent))'
+                        : 'rgba(255, 255, 255, 0.28)',
+                    boxShadow: 'none',
                   }}
                 />
               ))}
@@ -248,21 +256,21 @@ export default function SubscriptionCardActive({
             <div className="flex w-16 flex-shrink-0 items-center" aria-hidden="true">
               <div
                 className="h-[6px] w-full overflow-hidden rounded-full"
-                style={{ background: g.textGhost }}
+                style={{ background: 'rgba(255, 255, 255, 0.28)' }}
               >
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${Math.round((connectedDevices / subscription.device_limit) * 100)}%`,
-                    background: zone.mainVar,
-                    boxShadow: `0 0 8px rgba(${zone.mainVarRaw}, 0.25)`,
+                    background: 'rgb(var(--color-on-accent))',
+                    boxShadow: 'none',
                     minWidth: connectedDevices > 0 ? '4px' : '0px',
                   }}
                 />
               </div>
             </div>
           )}
-        </HoverBorderGradient>
+        </button>
       )}
 
       {/* ─── Stats row: Tariff + Days Left ─── */}

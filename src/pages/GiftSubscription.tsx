@@ -24,6 +24,8 @@ import type {
   ReceivedGift,
 } from '../api/gift';
 
+import PaymentMethodIcon from '@/components/PaymentMethodIcon';
+import { defaultSubOptionId, orderSubOptions } from '@/utils/paymentSubOptions';
 import { cn } from '../lib/utils';
 import { copyToClipboard } from '../utils/clipboard';
 import { getApiErrorMessage } from '../utils/api-error';
@@ -366,18 +368,19 @@ function PaymentMethodCard({
       {isSelected && hasSubOptions && (
         <div className="border-t border-dark-800/30 px-4 pb-4 pt-3">
           <div className="flex flex-wrap gap-2">
-            {method.sub_options!.map((opt) => (
+            {orderSubOptions(method.sub_options!).map((opt) => (
               <button
                 key={opt.id}
                 type="button"
                 onClick={() => onSelectSubOption(opt.id)}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200',
+                  'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200',
                   selectedSubOption === opt.id
                     ? 'bg-accent-500 text-on-accent shadow-sm shadow-accent-500/25'
                     : 'bg-dark-800/50 text-dark-300 hover:bg-dark-700/50',
                 )}
               >
+                <PaymentMethodIcon method={opt.id} className="h-5 w-5 shrink-0" />
                 {opt.name}
               </button>
             ))}
@@ -422,7 +425,7 @@ function BuyTabContent({
       const firstMethod = config.payment_methods[0];
       setSelectedMethod(firstMethod.method_id);
       if (firstMethod.sub_options && firstMethod.sub_options.length >= 1) {
-        setSelectedSubOption(firstMethod.sub_options[0].id);
+        setSelectedSubOption(defaultSubOptionId(firstMethod.sub_options));
       } else {
         setSelectedSubOption(null);
       }
@@ -655,7 +658,7 @@ function BuyTabContent({
                   onSelect={() => {
                     setSelectedMethod(method.method_id);
                     if (method.sub_options && method.sub_options.length >= 1) {
-                      setSelectedSubOption(method.sub_options[0].id);
+                      setSelectedSubOption(defaultSubOptionId(method.sub_options));
                     } else {
                       setSelectedSubOption(null);
                     }

@@ -4,7 +4,7 @@ import { CheckIcon, CopyIcon } from '@/components/icons';
 import type { RemnawaveButtonClient, LocalizedText } from '@/types';
 import { copyToClipboard } from '@/utils/clipboard';
 import { collapseDoubledCryptPrefix, hasTemplates, resolveTemplate } from '@/utils/templateEngine';
-import { blockButtonClass } from './buttonStyles';
+import { blockButtonClass, blockPrimaryButtonClass } from './buttonStyles';
 
 // eslint-disable-next-line no-script-url
 const dangerousSchemes = ['javascript:', 'data:', 'vbscript:', 'file:'];
@@ -91,7 +91,7 @@ export function BlockButtons({
             <button
               key={idx}
               onClick={() => onOpenDeepLink(url)}
-              className={`flex items-center gap-2 ${baseClass}`}
+              className={`flex items-center gap-2 ${blockPrimaryButtonClass()}`}
             >
               {btnIcon}
               {btnText || getBaseTranslation('openApp', 'subscription.connection.openLink')}

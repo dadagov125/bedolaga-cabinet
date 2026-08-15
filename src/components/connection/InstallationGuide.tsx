@@ -298,8 +298,9 @@ export default function InstallationGuide({
         )}
       </div>
 
-      {/* App chips */}
-      {currentPlatformApps.length > 0 && (
+      {/* Выбор приложения показываем, только когда выбирать есть из чего:
+          одинокая «кнопка» из одного варианта читается как действие и сбивает. */}
+      {currentPlatformApps.length > 1 && (
         <div className="flex flex-wrap gap-2">
           {currentPlatformApps.map((app, idx) => {
             const isSelected = selectedApp?.name === app.name;
