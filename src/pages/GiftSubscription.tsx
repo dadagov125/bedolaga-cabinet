@@ -380,7 +380,7 @@ function PaymentMethodCard({
                     : 'bg-dark-800/50 text-dark-300 hover:bg-dark-700/50',
                 )}
               >
-                <PaymentMethodIcon method={opt.id} className="h-5 w-5 shrink-0" />
+                <PaymentMethodIcon method={opt.id} className="h-6 w-6 shrink-0" />
                 {opt.name}
               </button>
             ))}

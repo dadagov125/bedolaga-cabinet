@@ -298,9 +298,10 @@ export default function InstallationGuide({
         )}
       </div>
 
-      {/* Выбор приложения показываем, только когда выбирать есть из чего:
-          одинокая «кнопка» из одного варианта читается как действие и сбивает. */}
-      {currentPlatformApps.length > 1 && (
+      {/* Приложение показываем всегда, даже когда оно одно: человеку важно
+          видеть, что именно он ставит. Когда вариант единственный, это не выбор,
+          а подпись — поэтому и выглядит спокойнее, без вида нажимаемой кнопки. */}
+      {currentPlatformApps.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {currentPlatformApps.map((app, idx) => {
             const isSelected = selectedApp?.name === app.name;
@@ -309,6 +310,7 @@ export default function InstallationGuide({
               <button
                 key={app.name + idx}
                 onClick={() => setSelectedApp(app)}
+                disabled={currentPlatformApps.length === 1}
                 className={`relative flex min-w-[calc(50%-0.25rem)] items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-sm font-medium transition-all active:scale-[0.97] ${
                   isSelected
                     ? isLight

@@ -8,7 +8,6 @@ import { DEVICE_ALIAS_MAX_LENGTH } from '../constants/devices';
 import { WebBackButton } from '../components/WebBackButton';
 import { useDestructiveConfirm } from '../platform/hooks/useNativeDialog';
 import TrafficProgressBar from '../components/dashboard/TrafficProgressBar';
-import { HoverBorderGradient } from '../components/ui/hover-border-gradient';
 import { useTrafficZone } from '../hooks/useTrafficZone';
 import { formatTraffic } from '../utils/formatTraffic';
 import { getGlassColors } from '../utils/glassTheme';
@@ -968,9 +967,10 @@ export default function Subscription() {
 
               {/* ─── Connect Device Button ─── */}
               {subscription.subscription_url && (
-                <HoverBorderGradient
-                  as="button"
-                  accentColor={zone.mainHex}
+                // Главное действие экрана — заливная кнопка, как и на главной:
+                // карточку с тонкой рамкой люди не воспринимают как нажимаемую.
+                <button
+                  type="button"
                   disabled={isAtDeviceLimit}
                   onClick={() => {
                     if (isAtDeviceLimit) {
@@ -979,20 +979,24 @@ export default function Subscription() {
                     }
                     navigate(subscriptionId ? `/connection?sub=${subscriptionId}` : '/connection');
                   }}
-                  className={`mb-5 flex w-full items-center gap-3.5 rounded-[14px] p-3.5 text-left transition-shadow duration-300${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : ''}`}
-                  style={{ fontFamily: 'inherit' }}
+                  className={`mb-5 flex w-full items-center gap-3.5 rounded-[14px] p-3.5 text-left shadow-lg transition-all duration-300 active:scale-[0.99] ${isAtDeviceLimit ? 'cursor-not-allowed opacity-50' : 'hover:brightness-110'}`}
+                  style={{
+                    fontFamily: 'inherit',
+                    background: zone.mainHex,
+                    boxShadow: `0 6px 20px ${zone.mainHex}59`,
+                  }}
                 >
                   <div
                     className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-500"
-                    style={{ background: `${zone.mainHex}12`, color: zone.mainHex }}
+                    style={{ background: 'rgba(255, 255, 255, 0.18)', color: '#fff' }}
                   >
                     <DevicesIcon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold tracking-tight text-dark-50">
+                    <div className="text-[15px] font-bold tracking-tight text-on-accent">
                       {t('dashboard.connectDevice')}
                     </div>
-                    <div className="mt-0.5 text-[11px] text-dark-50/30">
+                    <div className="mt-0.5 text-[11px] text-on-accent/70">
                       {subscription.device_limit === 0
                         ? t('dashboard.devicesConnectedUnlimited', { used: connectedDevices })
                         : t('dashboard.devicesOfMax', {
@@ -1045,14 +1049,14 @@ export default function Subscription() {
                               const pct = connectedDevices / subscription.device_limit;
                               return connectedDevices > 0 ? Math.max(pct, 0.0625) : 0;
                             })()})`,
-                            background: zone.mainHex,
-                            boxShadow: `0 0 8px ${zone.mainHex}40`,
+                            background: 'rgb(var(--color-on-accent))',
+                            boxShadow: 'none',
                           }}
                         />
                       </div>
                     </div>
                   )}
-                </HoverBorderGradient>
+                </button>
               )}
 
               {/* ─── Subscription URL ─── */}

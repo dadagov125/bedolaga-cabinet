@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { SbpLogo } from './icons/SbpLogo';
 
 interface PaymentMethodIconProps {
   method: string;
@@ -122,32 +123,24 @@ export default function PaymentMethodIcon({
     // Под-способы оплаты внутри шлюза («Карта» / «СБП»). Рисуются в чипах
     // выбора: текст рядом с иконкой человек считывает быстрее, чем один текст.
     case 'sbp':
+      // Знак СБП многоцветный и по брендбуку ставится на светлую подложку: на
+      // синей кнопке и на тёмном фоне он одинаково тонет. Белая плитка решает
+      // оба случая разом.
       return (
-        <svg className={className} viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="20" r="20" fill="#1D1D3A" />
-          <path d="M11 13l4.6 7-4.6 7V13z" fill="#5B57D1" />
-          <path d="M15.6 20l4.6-7h5.2l-4.6 7h-5.2z" fill="#F6A623" />
-          <path d="M15.6 20l4.6 7h5.2l-4.6-7h-5.2z" fill="#3AA648" />
-          <path d="M26.4 13H31l-4.6 7 4.6 7h-4.6l-4.6-7 4.6-7z" fill="#12A2C8" />
-        </svg>
+        <span
+          className={`inline-flex items-center justify-center rounded-md bg-white p-[2px] ${className}`}
+        >
+          <SbpLogo className="h-full w-full" />
+        </span>
       );
 
     case 'card':
       return (
-        <svg className={className} viewBox="0 0 40 40" aria-hidden="true">
-          <circle cx="20" cy="20" r="20" fill="#2D3A5E" />
-          <rect
-            x="10"
-            y="14"
-            width="20"
-            height="13"
-            rx="2.5"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="1.6"
-          />
-          <path d="M10 18.5h20" stroke="#fff" strokeWidth="1.6" />
-          <rect x="13" y="22" width="6" height="2" rx="1" fill="#fff" opacity=".7" />
+        <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="2" y="5" width="20" height="14" rx="3" fill="#2D3A5E" />
+          <path d="M2 9.5h20" stroke="#fff" strokeWidth="2" />
+          <rect x="5" y="13" width="7" height="2.2" rx="1.1" fill="#fff" opacity=".75" />
+          <rect x="15.5" y="13" width="3.5" height="2.2" rx="1.1" fill="#fff" opacity=".45" />
         </svg>
       );
 
