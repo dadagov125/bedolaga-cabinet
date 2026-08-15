@@ -19,17 +19,24 @@ export function setFavicon(href: string): void {
 }
 
 /**
- * Generate a square monogram favicon (SVG data URI) from a brand letter.
- * Used when the deployment has no custom logo, so every page still gets an
- * icon that matches the brand letter instead of the browser's blank default.
+ * Фавиконка по умолчанию — знак бренда на тёмной плашке.
+ *
+ * Раньше здесь рисовалась буква: логотипа не существовало, и монограмма была
+ * единственным способом не отдавать браузеру пустой квадрат. Теперь знак есть,
+ * и во вкладке должен стоять он. Плашка нужна, потому что контурный знак на
+ * светлой теме браузера сливается с фоном вкладки.
+ *
+ * Аргумент сохранён: сигнатуру вызывают из нескольких мест, а логотип,
+ * загруженный админом, всё равно перекрывает это значение.
  */
-export function letterFaviconDataUri(letter: string): string {
-  const ch = (letter || 'V').trim().charAt(0).toUpperCase() || 'V';
+export function letterFaviconDataUri(_letter?: string): string {
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
     `<rect width="64" height="64" rx="14" fill="#0a0f1a"/>` +
-    `<text x="50%" y="50%" font-family="Manrope,Arial,sans-serif" font-size="38" ` +
-    `font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">${ch}</text>` +
+    `<g fill="none" stroke="#60A5FA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" ` +
+    `transform="translate(32 32) scale(0.82) translate(-32 -32)">` +
+    `<path d="M32 8 52 15v16c0 11-8 19-20 24-12-5-20-13-20-24V15L32 8Z"/>` +
+    `<path d="M24 34l8-8 8 8"/></g>` +
     `</svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }

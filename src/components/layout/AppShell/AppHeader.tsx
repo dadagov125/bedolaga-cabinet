@@ -45,7 +45,6 @@ import {
 } from './icons';
 
 const FALLBACK_NAME = import.meta.env.VITE_APP_NAME || 'Cabinet';
-const FALLBACK_LOGO = import.meta.env.VITE_APP_LOGO || 'V';
 
 import type { TelegramPlatform } from '@/hooks/useTelegramSDK';
 
@@ -107,7 +106,6 @@ export function AppHeader({
   });
 
   const appName = branding ? branding.name : FALLBACK_NAME;
-  const logoLetter = branding?.logo_letter || FALLBACK_LOGO;
   const hasCustomLogo = branding?.has_custom_logo || false;
   const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
 
@@ -195,14 +193,17 @@ export function AppHeader({
               className={cn('flex flex-shrink-0 items-center gap-2.5', !appName && 'mr-4')}
             >
               <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-linear-lg border border-dark-700/50 bg-dark-800/80 shadow-md">
-                <span
+                {/* Свой знак вместо буквы: буква была заглушкой на время,
+                    пока логотипа не существовало. Загруженный через админку
+                    логотип по-прежнему в приоритете. */}
+                <img
+                  src="/logo.svg"
+                  alt={appName || 'Logo'}
                   className={cn(
-                    'absolute text-lg font-bold text-accent-400 transition-opacity duration-200',
+                    'absolute h-6 w-6 object-contain transition-opacity duration-200',
                     hasCustomLogo && logoLoaded ? 'opacity-0' : 'opacity-100',
                   )}
-                >
-                  {logoLetter}
-                </span>
+                />
                 {hasCustomLogo && logoUrl && (
                   <img
                     src={logoUrl}
