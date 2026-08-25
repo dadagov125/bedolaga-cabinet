@@ -51,6 +51,9 @@ export default function PurchaseCTAButton({
       : '/subscription/purchase';
 
   return (
+    // Заливка вместо полупрозрачной карточки с тонкой рамкой: это действие, ради
+    // которого экран существует, а выглядело оно как справочный блок — люди
+    // жаловались, что «купить негде», хотя кнопка была на месте.
     <Link to={linkTo} className="block">
       <HoverBorderGradient
         accentColor={accentColor}
@@ -58,11 +61,11 @@ export default function PurchaseCTAButton({
         className="group relative w-full cursor-pointer overflow-hidden rounded-2xl"
       >
         <div
-          className="relative flex items-center justify-between rounded-[14px] px-5 py-4 transition-colors duration-300"
+          className="relative flex items-center justify-between rounded-[14px] px-5 py-4 shadow-lg transition-colors duration-300"
           style={{
             background: isExpired
-              ? 'linear-gradient(135deg, rgba(255,59,92,0.08), rgba(255,107,53,0.06))'
-              : 'linear-gradient(135deg, rgba(var(--color-accent-400), 0.08), rgba(var(--color-accent-400), 0.06))',
+              ? 'linear-gradient(135deg, rgba(255,59,92,0.22), rgba(255,107,53,0.16))'
+              : 'linear-gradient(135deg, rgba(var(--color-accent-400), 0.28), rgba(var(--color-accent-400), 0.18))',
           }}
         >
           {/* Left: icon + text */}

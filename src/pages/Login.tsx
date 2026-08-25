@@ -277,7 +277,6 @@ export default function Login() {
   };
 
   const appName = branding ? branding.name : import.meta.env.VITE_APP_NAME || 'VPN';
-  const appLogo = branding?.logo_letter || import.meta.env.VITE_APP_LOGO || 'V';
   const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
 
   // Set document title
@@ -489,15 +488,26 @@ export default function Login() {
       </div>
 
       <div className="relative w-full max-w-md space-y-5">
+        {/* Возврат на витрину. Обычная ссылка, а не роутер: на корне стоит
+            редирект nginx на лендинг, и внутренняя навигация его не увидит —
+            человек просто вернулся бы на этот же экран входа. */}
+        <a
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm text-dark-400 transition-colors hover:text-dark-200"
+        >
+          <span aria-hidden="true">&larr;</span>
+          {t('auth.backToSite', 'На сайт')}
+        </a>
+
         {/* Logo & branding */}
         <div className="text-center">
           <div className="relative mx-auto mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-dark-700/50 bg-dark-800/80 shadow-md">
-            {/* Letter fallback */}
-            <span
-              className={`absolute text-lg font-bold text-accent-400 transition-opacity duration-200 ${branding?.has_custom_logo && logoLoaded ? 'opacity-0' : 'opacity-100'}`}
-            >
-              {appLogo}
-            </span>
+            {/* Свой знак вместо буквы; логотип из админки остаётся в приоритете */}
+            <img
+              src="/logo.svg"
+              alt={appName || 'Logo'}
+              className={`absolute h-7 w-7 object-contain transition-opacity duration-200 ${branding?.has_custom_logo && logoLoaded ? 'opacity-0' : 'opacity-100'}`}
+            />
             {/* Logo image */}
             {branding?.has_custom_logo && logoUrl && (
               <img

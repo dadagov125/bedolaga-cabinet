@@ -343,6 +343,26 @@ export default function SubscriptionCardActive({
         </div>
       </div>
 
+      {/* ─── Покупка / продление ─────────────────────────────────────
+          Раньше с главной купить было нельзя вообще: путь существовал только
+          внутри страницы подписки, ниже устройств и опций. Человек с пробным
+          периодом просто не находил, где заплатить. */}
+      <Link
+        to="/subscription/purchase"
+        className="mb-4 flex w-full items-center justify-between gap-3 rounded-[14px] px-4 py-3 transition-colors"
+        style={{
+          background: `rgba(${zone.mainVarRaw}, 0.1)`,
+          border: `1px solid rgba(${zone.mainVarRaw}, 0.35)`,
+        }}
+      >
+        <span className="text-sm font-semibold" style={{ color: zone.mainVar }}>
+          {subscription.is_trial ? t('subscription.trialUpgrade.title') : t('subscription.extend')}
+        </span>
+        <span className="text-xs" style={{ color: zone.mainVar }} aria-hidden="true">
+          &rarr;
+        </span>
+      </Link>
+
       {/* ─── Traffic Refresh ─── */}
       <div className="mb-5 flex items-center justify-between px-0.5">
         <button
