@@ -119,6 +119,11 @@ export default function Referral() {
   });
 
   // Withdrawal cancel mutation
+  // Вывод бонусов на карту у нас выключен и включаться не планирует: бонус —
+  // это внутренний баланс. Пока сервер отвечает, что вывод недоступен, весь
+  // блок не показываем — иначе человек видит «Доступно к выводу» и ждёт денег.
+  const withdrawalEnabled = withdrawalBalance?.is_withdrawal_enabled === true;
+
   const cancelWithdrawalMutation = useMutation({
     mutationFn: withdrawalApi.cancel,
     onSuccess: () => {
@@ -535,9 +540,11 @@ export default function Referral() {
                 })}
               </p>
             </div>
-            <a href="#withdrawal-section" className="btn-secondary hidden px-4 sm:flex">
-              {t('referral.withdrawal.goToWithdrawal')}
-            </a>
+            {withdrawalEnabled && (
+              <a href="#withdrawal-section" className="btn-secondary hidden px-4 sm:flex">
+                {t('referral.withdrawal.goToWithdrawal')}
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -593,7 +600,7 @@ export default function Referral() {
 
       {/* ==================== Withdrawal Section ==================== */}
 
-      {withdrawalVisible && (
+      {withdrawalVisible && withdrawalEnabled && (
         <div id="withdrawal-section" className="space-y-6">
           {/* Withdrawal Balance Card */}
           {withdrawalBalance && (
