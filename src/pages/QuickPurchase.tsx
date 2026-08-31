@@ -38,7 +38,7 @@ import PaymentMethodIcon from '@/components/PaymentMethodIcon';
 import { defaultSubOptionId, orderSubOptions } from '@/utils/paymentSubOptions';
 import { cn } from '../lib/utils';
 import { getApiErrorMessage } from '../utils/api-error';
-import { formatPrice, formatPriceRounded } from '../utils/format';
+import { formatPriceRounded } from '../utils/format';
 import { getBestMonthlyOffer, getMonthlyRateKopeks } from '../utils/pricing';
 import { setFavicon, letterFaviconDataUri, roundedFaviconDataUri } from '../utils/favicon';
 import { useCurrency } from '../hooks/useCurrency';
@@ -589,7 +589,7 @@ function SummaryCard({
               selectedPeriod.original_price_kopeks > selectedPeriod.price_kopeks && (
                 <>
                   <span className="text-base text-dark-500 line-through">
-                    {formatPrice(selectedPeriod.original_price_kopeks)}
+                    {formatPriceRounded(selectedPeriod.original_price_kopeks)}
                   </span>
                   {selectedPeriod.discount_percent != null && (
                     <span className="rounded-full bg-accent-500/20 px-2 py-0.5 text-xs font-bold text-accent-400">
@@ -683,10 +683,10 @@ function SummaryCard({
                   {selectedPeriod?.original_price_kopeks != null &&
                     selectedPeriod.original_price_kopeks > selectedPeriod.price_kopeks && (
                       <span className="mr-1 text-sm font-normal text-white/50 line-through">
-                        {formatPrice(selectedPeriod.original_price_kopeks)}
+                        {formatPriceRounded(selectedPeriod.original_price_kopeks)}
                       </span>
                     )}
-                  {formatPrice(currentPrice)}
+                  {formatPriceRounded(currentPrice)}
                 </>
               )}
             </button>
@@ -729,10 +729,10 @@ function SummaryCard({
               {selectedPeriod?.original_price_kopeks != null &&
                 selectedPeriod.original_price_kopeks > selectedPeriod.price_kopeks && (
                   <span className="mr-1 text-sm font-normal text-white/50 line-through">
-                    {formatPrice(selectedPeriod.original_price_kopeks)}
+                    {formatPriceRounded(selectedPeriod.original_price_kopeks)}
                   </span>
                 )}
-              {formatPrice(currentPrice)}
+              {formatPriceRounded(currentPrice)}
             </>
           )}
         </button>
