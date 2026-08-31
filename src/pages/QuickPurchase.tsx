@@ -104,12 +104,12 @@ function ErrorState({ message }: { message: string }) {
 interface PurchaseStep {
   key: string;
   title: string;
-  /** Блок под заголовком. Не нужен, если блок рисует заголовок сам. */
-  body?: React.ReactNode;
+  /** Блок под заголовком. Готовый заголовок передаётся внутрь: карточке
+   *  контакта он нужен как невидимый <label> у поля ввода — видимый заголовок
+   *  рисуется снаружи, наравне с остальными шагами. */
+  body: (heading: string) => React.ReactNode;
   /** Что показать над заголовком, не занимая своего номера. */
   before?: React.ReactNode;
-  /** Блок рисует заголовок сам — например как <label> у поля ввода. */
-  ownHeading?: (heading: string) => React.ReactNode;
 }
 
 function PeriodTabs({
@@ -230,6 +230,7 @@ function ContactForm({
       <ContactField
         id="contact-input"
         label={label}
+        hideLabel
         type={contactType}
         onTypeChange={onContactTypeChange}
         values={contacts}
@@ -1305,7 +1306,7 @@ export default function QuickPurchase() {
     purchaseSteps.push({
       key: 'tariff',
       title: t('landing.stepTariff', 'Tariff'),
-      body: (
+      body: () => (
         <div
           role="radiogroup"
           aria-label={t('landing.chooseTariff', 'Choose tariff')}
@@ -1332,7 +1333,7 @@ export default function QuickPurchase() {
     purchaseSteps.push({
       key: 'period',
       title: t('landing.stepPeriod', 'Period'),
-      body: (
+      body: () => (
         <PeriodTabs
           periods={allPeriods}
           selectedDays={selectedPeriodDays ?? 0}
@@ -1349,9 +1350,7 @@ export default function QuickPurchase() {
     // Тумблер «в подарок» переключает, кому достанется подписка, — его место
     // прямо над полем контакта, но своим номером он шаг не занимает.
     before: config.gift_enabled ? <GiftToggle isGift={isGift} onToggle={setIsGift} /> : null,
-    // Заголовок рисует сам блок: это <label> у поля ввода, а не отдельный <h2>,
-    // иначе над карточкой окажется два заголовка подряд.
-    ownHeading: (heading) => (
+    body: (heading) => (
       <ContactForm
         label={heading}
         contactType={contactType}
@@ -1392,7 +1391,7 @@ export default function QuickPurchase() {
     purchaseSteps.push({
       key: 'payment',
       title: t('landing.stepPayment', 'Payment'),
-      body: (
+      body: () => (
         <div
           role="radiogroup"
           aria-label={t('landing.paymentMethod', 'Payment method')}
@@ -1478,16 +1477,10 @@ export default function QuickPurchase() {
               return (
                 <div key={step.key}>
                   {step.before && <div className="mb-6">{step.before}</div>}
-                  {step.ownHeading ? (
-                    step.ownHeading(heading)
-                  ) : (
-                    <>
-                      <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-dark-400">
-                        {heading}
-                      </h2>
-                      {step.body}
-                    </>
-                  )}
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-dark-50">
+                    {heading}
+                  </h2>
+                  {step.body(heading)}
                 </div>
               );
             })}

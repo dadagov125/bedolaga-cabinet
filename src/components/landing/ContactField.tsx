@@ -41,6 +41,10 @@ export function isContactValid(type: ContactType, values: ContactValues): boolea
 interface Props {
   id: string;
   label: string;
+  /** Прячет подпись визуально, оставляя её для скринридера: на лендинге
+   *  видимый заголовок шага рисуется снаружи карточки, наравне с остальными
+   *  шагами, а связь <label for> с полем терять нельзя. */
+  hideLabel?: boolean;
   type: ContactType;
   onTypeChange: (type: ContactType) => void;
   values: ContactValues;
@@ -51,6 +55,7 @@ interface Props {
 export default function ContactField({
   id,
   label,
+  hideLabel = false,
   type,
   onTypeChange,
   values,
@@ -70,7 +75,10 @@ export default function ContactField({
 
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-sm font-medium text-dark-200">
+      <label
+        htmlFor={id}
+        className={hideLabel ? 'sr-only' : 'mb-2 block text-sm font-medium text-dark-200'}
+      >
         {label}
       </label>
 
