@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { subscriptionApi } from '../../../api/subscription';
@@ -68,6 +68,7 @@ export function SwitchTariffSheet({
 }: SwitchTariffSheetProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { formatAmount, currencySymbol } = useCurrency();
   const ref = useRef<HTMLDivElement>(null);
@@ -210,6 +211,10 @@ export function SwitchTariffSheet({
                 <InsufficientBalancePrompt
                   missingAmountKopeks={switchPreview.missing_amount_kopeks}
                   compact
+                  // После пополнения возвращаемся не просто на страницу тарифов,
+                  // а сразу в это же окно смены — иначе человек попадает в
+                  // список и должен вспоминать, куда он шёл.
+                  returnTo={`${location.pathname}?switchTariff=${tariffId}`}
                 />
               )}
 
@@ -222,8 +227,13 @@ export function SwitchTariffSheet({
                   <span className="flex items-center justify-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                   </span>
+                ) : switchPreview.upgrade_cost_kopeks > 0 ? (
+                  t('subscription.switchTariff.payAndSwitch', {
+                    price: switchPreview.upgrade_cost_label,
+                    defaultValue: 'Доплатить {{price}} и перейти',
+                  })
                 ) : (
-                  t('subscription.switchTariff.switch')
+                  t('subscription.switchTariff.switchFree', 'Перейти бесплатно')
                 )}
               </button>
 

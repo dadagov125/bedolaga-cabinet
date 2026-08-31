@@ -316,11 +316,14 @@ export function TariffPickerGrid({
                       {t('subscription.tariff.selectForRenewal')}
                     </button>
                   ) : canSwitch ? (
+                    // «Перейти» само по себе читалось как «открыть страницу», и
+                    // смену тарифа просто не замечали. Пишем действие целиком и
+                    // не прячем кнопку в серый.
                     <button
                       onClick={() => onSwitchTariff(tariff.id)}
-                      className="btn-secondary flex-1 py-2 text-sm"
+                      className="flex-1 rounded-xl border border-accent-500/40 bg-accent-500/10 py-2 text-sm font-medium text-accent-400 transition-colors hover:bg-accent-500/20"
                     >
-                      {t('subscription.switchTariff.switch')}
+                      {t('subscription.switchTariff.switchToThis', 'Перейти на этот тариф')}
                     </button>
                   ) : (
                     <button

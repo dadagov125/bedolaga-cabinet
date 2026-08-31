@@ -516,7 +516,10 @@
       "remainingDays": "剩余天数",
       "switch": "切换",
       "title": "切换套餐",
-      "upgradeCost": "升级费用"
+      "upgradeCost": "升级费用",
+      "switchToThis": "切换到此套餐",
+      "payAndSwitch": "支付 {{price}} 并切换",
+      "switchFree": "免费切换"
     },
     "promoGroup": {
       "yourGroup": "您的组：{{name}}",
@@ -683,7 +686,8 @@
     "trialUpgrade": {
       "description": "您的试用期即将结束。请选择合适的套餐，以继续无限制使用 VPN。",
       "title": "升级订阅"
-    }
+    },
+    "extendOrSwitch": "续订或更换套餐"
   },
   "balance": {
     "title": "余额",

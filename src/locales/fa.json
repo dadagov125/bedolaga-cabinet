@@ -516,7 +516,10 @@
       "remainingDays": "روزهای باقی‌مانده",
       "switch": "تغییر",
       "title": "تغییر تعرفه",
-      "upgradeCost": "هزینه ارتقا"
+      "upgradeCost": "هزینه ارتقا",
+      "switchToThis": "انتقال به این طرح",
+      "payAndSwitch": "پرداخت {{price}} و انتقال",
+      "switchFree": "انتقال رایگان"
     },
     "promoGroup": {
       "yourGroup": "گروه شما: {{name}}",
@@ -683,7 +686,8 @@
     "trialUpgrade": {
       "description": "دوره آزمایشی شما به‌زودی به پایان می‌رسد. برای ادامه استفاده از VPN بدون محدودیت، یک تعرفه مناسب انتخاب کنید.",
       "title": "ارتقای اشتراک"
-    }
+    },
+    "extendOrSwitch": "تمدید یا تغییر طرح"
   },
   "balance": {
     "title": "موجودی",

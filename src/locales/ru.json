@@ -596,7 +596,10 @@
       "switched": "Тариф изменён",
       "notEnoughBalance": "Недостаточно средств",
       "dailyPayment": "Оплата за день",
-      "dailyChargeDescription": "Списывается ежедневно с баланса"
+      "dailyChargeDescription": "Списывается ежедневно с баланса",
+      "switchToThis": "Перейти на этот тариф",
+      "payAndSwitch": "Доплатить {{price}} и перейти",
+      "switchFree": "Перейти бесплатно"
     },
     "switchTraffic": {
       "title": "Изменить трафик",
@@ -783,7 +786,8 @@
     "statusActive": "Активна",
     "statusExpired": "Истекла",
     "statusLimited": "Ограничена",
-    "statusTrial": "Триал"
+    "statusTrial": "Триал",
+    "extendOrSwitch": "Продление и смена тарифа"
   },
   "balance": {
     "title": "Баланс",

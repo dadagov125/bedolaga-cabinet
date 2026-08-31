@@ -75,8 +75,14 @@ export default function SubscriptionPurchase() {
   // (tariffPurchaseRef moved into <TariffPurchaseForm>; switch-modal ref
   //  moved into <SwitchTariffSheet>)
 
-  // Tariff switch
-  const [switchTariffId, setSwitchTariffId] = useState<number | null>(null);
+  // Tariff switch. Начальное значение берём из адреса: со страницы пополнения
+  // человек возвращается по ссылке ?switchTariff=<id> и сразу видит окно смены,
+  // где доплату уже есть чем закрыть.
+  const [switchTariffId, setSwitchTariffId] = useState<number | null>(() => {
+    const fromUrl = searchParams.get('switchTariff');
+    const parsed = fromUrl ? Number.parseInt(fromUrl, 10) : Number.NaN;
+    return Number.isFinite(parsed) ? parsed : null;
+  });
 
   // Auto-close all modals on success notification
   const handleCloseAllModals = () => {
@@ -143,7 +149,9 @@ export default function SubscriptionPurchase() {
             : !isMultiTariff && subscription?.is_daily && !subscription?.is_trial
               ? t('subscription.switchTariff.title')
               : subscription && !subscription.is_trial
-                ? t('subscription.extend')
+                ? // На этом экране не только продление: тут же меняют тариф.
+                  // Заголовок «Продлить подписку» уводил от второй половины.
+                  t('subscription.extendOrSwitch', 'Продление и смена тарифа')
                 : t('subscription.getSubscription')}
         </h1>
       </div>

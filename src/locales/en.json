@@ -582,7 +582,10 @@
       "switched": "Tariff switched",
       "notEnoughBalance": "Insufficient balance",
       "dailyPayment": "Daily payment",
-      "dailyChargeDescription": "Charged daily from your balance"
+      "dailyChargeDescription": "Charged daily from your balance",
+      "switchToThis": "Switch to this plan",
+      "payAndSwitch": "Pay {{price}} and switch",
+      "switchFree": "Switch for free"
     },
     "switchTraffic": {
       "title": "Change Traffic",
@@ -764,7 +767,8 @@
     "statusActive": "Active",
     "statusExpired": "Expired",
     "statusLimited": "Limited",
-    "statusTrial": "Trial"
+    "statusTrial": "Trial",
+    "extendOrSwitch": "Renew or switch plan"
   },
   "balance": {
     "title": "Balance",
