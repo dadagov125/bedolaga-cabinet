@@ -4,6 +4,7 @@ import { useTheme } from '../../../hooks/useTheme';
 import { useCurrency } from '../../../hooks/useCurrency';
 import { usePromoDiscount } from '../../../hooks/usePromoDiscount';
 import { getGlassColors } from '../../../utils/glassTheme';
+import { getBestMonthlyOffer } from '../../../utils/pricing';
 import { ArrowDownIcon, DevicesIcon, RestartIcon } from '@/components/icons';
 import type { Tariff, Subscription, PurchaseOptions } from '../../../types';
 
@@ -48,10 +49,10 @@ export function TariffPickerGrid({
   const { formatAmount, currencySymbol } = useCurrency();
   const { applyPromoDiscount } = usePromoDiscount();
 
-  const formatPrice = (kopeks: number) =>
+  const formatPrice = (kopeks: number, decimals = 2) =>
     kopeks === 0
       ? t('subscription.free', 'Бесплатно')
-      : `${formatAmount(kopeks / 100)} ${currencySymbol}`;
+      : `${formatAmount(kopeks / 100, decimals)} ${currencySymbol}`;
 
   return (
     <>
@@ -235,23 +236,33 @@ export function TariffPickerGrid({
                       );
                     }
                     if (tariff.periods.length > 0) {
+                      // «от X ₽/мес» — нижняя граница цены по всем периодам.
+                      // Цена первого периода (обычно месяц) — самая дорогая
+                      // месячная ставка, и человек уходил, не открыв тариф.
+                      const bestOffer = getBestMonthlyOffer(
+                        tariff.periods.filter((period) => period.days >= 30),
+                      );
                       const firstPeriod = tariff.periods[0];
                       const promoPeriod = applyPromoDiscount(
-                        firstPeriod?.price_kopeks || 0,
-                        firstPeriod?.original_price_kopeks,
+                        bestOffer?.monthlyKopeks ?? firstPeriod?.price_kopeks ?? 0,
+                        firstPeriod?.original_price_kopeks && bestOffer === null
+                          ? firstPeriod.original_price_kopeks
+                          : undefined,
                       );
+                      const savePercent = bestOffer?.savePercent ?? 0;
                       return (
-                        <span className="flex flex-wrap items-center gap-2">
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <span>{t('subscription.from')}</span>
                           <span className="font-medium text-accent-400">
-                            {formatPrice(promoPeriod.price)}
+                            {formatPrice(promoPeriod.price, 0)}
+                            {bestOffer !== null && `/${t('subscription.month')}`}
                           </span>
                           {promoPeriod.original && promoPeriod.original > promoPeriod.price && (
                             <span className="text-xs text-dark-500 line-through">
-                              {formatPrice(promoPeriod.original)}
+                              {formatPrice(promoPeriod.original, 0)}
                             </span>
                           )}
-                          {promoPeriod.percent && promoPeriod.percent > 0 && (
+                          {promoPeriod.percent && promoPeriod.percent > 0 ? (
                             <span
                               className={`rounded px-1.5 py-0.5 text-xs ${
                                 promoPeriod.isPromoGroup
@@ -261,6 +272,15 @@ export function TariffPickerGrid({
                             >
                               -{promoPeriod.percent}%
                             </span>
+                          ) : (
+                            savePercent > 0 && (
+                              <span className="rounded bg-success-500/20 px-1.5 py-0.5 text-xs text-success-400">
+                                {t('subscription.tariff.saveUpTo', {
+                                  percent: savePercent,
+                                  defaultValue: 'save up to {{percent}}%',
+                                })}
+                              </span>
+                            )
                           )}
                         </span>
                       );

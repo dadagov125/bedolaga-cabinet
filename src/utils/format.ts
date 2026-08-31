@@ -34,7 +34,17 @@ export function setExchangeRates(rates: ExchangeRates | null): void {
   cachedExchangeRates = rates;
 }
 
-export function formatPrice(kopeks: number, lang?: string): string {
+/**
+ * Цена без копеек — для витрины и карточек тарифов.
+ *
+ * Тарифы у нас в целых рублях, а «189,00 ₽» рядом с «от 113 ₽/мес» читается
+ * тяжелее, чем «189 ₽»: лишние нули отвлекают от самой цифры.
+ */
+export function formatPriceRounded(kopeks: number, lang?: string): string {
+  return formatPrice(kopeks, lang, 0);
+}
+
+export function formatPrice(kopeks: number, lang?: string, fractionDigits?: number): string {
   const resolvedLang = lang || i18next.language || 'ru';
   const config = LANG_CURRENCY_MAP[resolvedLang] || DEFAULT_CURRENCY;
   let amount = kopeks / 100;
@@ -46,12 +56,13 @@ export function formatPrice(kopeks: number, lang?: string): string {
   }
 
   // Для IRR суммы большие — без дробной части.
-  const maximumFractionDigits = config.currency === 'IRR' ? 0 : 2;
+  const maximumFractionDigits = fractionDigits ?? (config.currency === 'IRR' ? 0 : 2);
 
   try {
     return new Intl.NumberFormat(config.locale, {
       style: 'currency',
       currency: config.currency,
+      minimumFractionDigits: Math.min(maximumFractionDigits, 2),
       maximumFractionDigits,
     }).format(amount);
   } catch {

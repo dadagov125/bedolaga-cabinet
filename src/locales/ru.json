@@ -687,7 +687,8 @@
     "tariff": {
       "perDay": "/ день",
       "flexiblePayment": "Гибкая оплата",
-      "selectForRenewal": "Выбрать для продления"
+      "selectForRenewal": "Выбрать для продления",
+      "saveUpTo": "выгода до {{percent}}%"
     },
     "customDays": {
       "title": "Произвольное кол-во дней",
@@ -5976,7 +5977,11 @@
     "paymentNotCompleted": "Оплата не завершена",
     "paymentNotCompletedDesc": "Мы не увидели оплату. Если вы её отменили — можно выбрать тариф заново. Если оплатили только что, нажмите «Проверить снова»: иногда банк подтверждает платёж с задержкой.",
     "recheckPayment": "Проверить снова",
-    "resumePayment": "Вернуться к оплате"
+    "resumePayment": "Вернуться к оплате",
+    "perMonth": "/ мес",
+    "totalForPeriod": "{{price}} за {{period}}",
+    "fromPerMonth": "от {{price}}/мес при оплате за {{period}}",
+    "equalsPerMonth": "это {{price}} в месяц"
   },
   "coupon": {
     "title": "Купон на подписку",

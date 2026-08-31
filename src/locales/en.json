@@ -668,7 +668,8 @@
     "tariff": {
       "perDay": "/ day",
       "flexiblePayment": "Flexible payment",
-      "selectForRenewal": "Select for renewal"
+      "selectForRenewal": "Select for renewal",
+      "saveUpTo": "save up to {{percent}}%"
     },
     "customDays": {
       "title": "Custom number of days",
@@ -5427,7 +5428,11 @@
     "paymentNotCompleted": "Payment not completed",
     "paymentNotCompletedDesc": "We haven't seen the payment. If you cancelled it, pick a plan again. If you just paid, tap “Check again” — banks sometimes confirm with a delay.",
     "recheckPayment": "Check again",
-    "resumePayment": "Back to payment"
+    "resumePayment": "Back to payment",
+    "perMonth": "/ mo",
+    "totalForPeriod": "{{price}} for {{period}}",
+    "fromPerMonth": "from {{price}}/mo when paying for {{period}}",
+    "equalsPerMonth": "that is {{price}} per month"
   },
   "coupon": {
     "title": "Subscription coupon",

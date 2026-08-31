@@ -525,7 +525,8 @@
     "tariff": {
       "perDay": "/ روز",
       "flexiblePayment": "پرداخت انعطاف‌پذیر",
-      "selectForRenewal": "انتخاب برای تمدید"
+      "selectForRenewal": "انتخاب برای تمدید",
+      "saveUpTo": "تا {{percent}}٪ صرفه‌جویی"
     },
     "customDays": {
       "title": "تعداد روز سفارشی",
@@ -4974,7 +4975,11 @@
     "paymentNotCompleted": "پرداخت کامل نشد",
     "paymentNotCompletedDesc": "پرداختی دیده نشد. اگر لغو کرده‌اید، دوباره تعرفه انتخاب کنید. اگر همین حالا پرداخت کرده‌اید، «بررسی دوباره» را بزنید — گاهی بانک با تأخیر تأیید می‌کند.",
     "recheckPayment": "بررسی دوباره",
-    "resumePayment": "بازگشت به پرداخت"
+    "resumePayment": "بازگشت به پرداخت",
+    "perMonth": "/ ماه",
+    "totalForPeriod": "{{price}} برای {{period}}",
+    "fromPerMonth": "از {{price}} در ماه با پرداخت {{period}}",
+    "equalsPerMonth": "یعنی {{price}} در ماه"
   },
   "gift": {
     "title": "هدیه اشتراک",

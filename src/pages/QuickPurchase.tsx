@@ -38,7 +38,8 @@ import PaymentMethodIcon from '@/components/PaymentMethodIcon';
 import { defaultSubOptionId, orderSubOptions } from '@/utils/paymentSubOptions';
 import { cn } from '../lib/utils';
 import { getApiErrorMessage } from '../utils/api-error';
-import { formatPrice } from '../utils/format';
+import { formatPrice, formatPriceRounded } from '../utils/format';
+import { getBestMonthlyOffer, getMonthlyRateKopeks } from '../utils/pricing';
 import { setFavicon, letterFaviconDataUri, roundedFaviconDataUri } from '../utils/favicon';
 import { useCurrency } from '../hooks/useCurrency';
 
@@ -99,31 +100,48 @@ function ErrorState({ message }: { message: string }) {
 function PeriodTabs({
   periods,
   selectedDays,
+  savings,
   onSelect,
 }: {
   periods: LandingTariffPeriod[];
   selectedDays: number;
+  /** Экономия периода в процентах, по дням периода. Показываем прямо на вкладке. */
+  savings: Record<number, number>;
   onSelect: (days: number) => void;
 }) {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-wrap gap-2">
-      {periods.map((period) => (
-        <button
-          key={period.days}
-          type="button"
-          onClick={() => onSelect(period.days)}
-          className={cn(
-            'whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-            selectedDays === period.days
-              ? 'bg-accent-500 text-on-accent shadow-lg shadow-accent-500/25'
-              : 'bg-dark-800/50 text-dark-300 hover:bg-dark-700/50 hover:text-dark-100',
-          )}
-        >
-          {formatPeriodLabel(period.days, t)}
-        </button>
-      ))}
+      {periods.map((period) => {
+        const save = savings[period.days] ?? 0;
+        const isSelected = selectedDays === period.days;
+        return (
+          <button
+            key={period.days}
+            type="button"
+            onClick={() => onSelect(period.days)}
+            className={cn(
+              'flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+              isSelected
+                ? 'bg-accent-500 text-on-accent shadow-lg shadow-accent-500/25'
+                : 'bg-dark-800/50 text-dark-300 hover:bg-dark-700/50 hover:text-dark-100',
+            )}
+          >
+            {formatPeriodLabel(period.days, t)}
+            {save > 0 && (
+              <span
+                className={cn(
+                  'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                  isSelected ? 'bg-black/20 text-on-accent' : 'bg-success-500/20 text-success-400',
+                )}
+              >
+                -{save}%
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -259,6 +277,32 @@ function TariffCard({
 }) {
   const { t } = useTranslation();
 
+  // Цена показывается за месяц: так тарифы сравнимы между собой и между
+  // периодами. Полная сумма за период идёт строкой ниже, чтобы человек не
+  // удивился списанию.
+  // Периоды короче месяца (посуточные тарифы) в месячную ставку не переводим:
+  // «цена за месяц» у суточного тарифа только путает.
+  const monthlyPeriods = tariff.periods.filter((period) => period.days >= 30);
+  const bestOffer = getBestMonthlyOffer(monthlyPeriods);
+  const monthlyPrice =
+    selectedPeriod && selectedPeriod.days >= 30
+      ? getMonthlyRateKopeks(selectedPeriod.price_kopeks, selectedPeriod.days)
+      : null;
+  const baseMonthly = bestOffer?.baseMonthlyKopeks ?? null;
+  const savePercent =
+    monthlyPrice !== null && baseMonthly !== null && baseMonthly > monthlyPrice
+      ? Math.round((1 - monthlyPrice / baseMonthly) * 100)
+      : 0;
+  // Персональная скидка (промогруппа/акция) — своя зачёркнутая цена, тоже за месяц
+  const promoOriginal =
+    selectedPeriod?.original_price_kopeks != null &&
+    selectedPeriod.original_price_kopeks > selectedPeriod.price_kopeks
+      ? getMonthlyRateKopeks(
+          selectedPeriod.original_price_kopeks,
+          monthlyPrice !== null ? selectedPeriod.days : 30,
+        )
+      : null;
+
   return (
     <button
       type="button"
@@ -305,24 +349,58 @@ function TariffCard({
       {/* Price */}
       {selectedPeriod && (
         <div className="mt-3 border-t border-dark-800/30 pt-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-lg font-bold text-accent-400">
-              {formatPrice(selectedPeriod.price_kopeks)}
+              {formatPriceRounded(monthlyPrice ?? selectedPeriod.price_kopeks)}
             </span>
-            {selectedPeriod.original_price_kopeks != null &&
-              selectedPeriod.original_price_kopeks > selectedPeriod.price_kopeks && (
+            {monthlyPrice !== null && (
+              <span className="text-xs text-dark-400">{t('landing.perMonth', '/ month')}</span>
+            )}
+            {promoOriginal !== null ? (
+              <>
+                <span className="text-sm text-dark-500 line-through">
+                  {formatPriceRounded(promoOriginal)}
+                </span>
+                {selectedPeriod.discount_percent != null && (
+                  <span className="rounded-full bg-accent-500/20 px-1.5 py-0.5 text-[10px] font-bold text-accent-400">
+                    -{selectedPeriod.discount_percent}%
+                  </span>
+                )}
+              </>
+            ) : (
+              savePercent > 0 &&
+              baseMonthly !== null && (
                 <>
                   <span className="text-sm text-dark-500 line-through">
-                    {formatPrice(selectedPeriod.original_price_kopeks)}
+                    {formatPriceRounded(baseMonthly)}
                   </span>
-                  {selectedPeriod.discount_percent != null && (
-                    <span className="rounded-full bg-accent-500/20 px-1.5 py-0.5 text-[10px] font-bold text-accent-400">
-                      -{selectedPeriod.discount_percent}%
-                    </span>
-                  )}
+                  <span className="rounded-full bg-success-500/20 px-1.5 py-0.5 text-[10px] font-bold text-success-400">
+                    -{savePercent}%
+                  </span>
                 </>
-              )}
+              )
+            )}
           </div>
+          {/* Итог за период — чтобы человек видел, сколько спишется на самом деле */}
+          {monthlyPrice !== null && selectedPeriod.days > 30 && (
+            <p className="mt-1 text-xs text-dark-400">
+              {t('landing.totalForPeriod', {
+                price: formatPriceRounded(selectedPeriod.price_kopeks),
+                period: formatPeriodLabel(selectedPeriod.days, t),
+                defaultValue: '{{price}} for {{period}}',
+              })}
+            </p>
+          )}
+          {/* Нижняя граница цены: видно, что длинный период заметно дешевле */}
+          {bestOffer && bestOffer.days !== selectedPeriod.days && (
+            <p className="mt-1 text-xs text-success-400">
+              {t('landing.fromPerMonth', {
+                price: formatPriceRounded(bestOffer.monthlyKopeks),
+                period: formatPeriodLabel(bestOffer.days, t),
+                defaultValue: 'from {{price}}/mo when paying for {{period}}',
+              })}
+            </p>
+          )}
         </div>
       )}
     </button>
@@ -470,6 +548,13 @@ function SummaryCard({
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Для длинных периодов дублируем цену за месяц: итог в 1 359 ₽ пугает, пока
+  // рядом не написано, что это 113 ₽ в месяц.
+  const summaryMonthly =
+    selectedPeriod && selectedPeriod.days > 30
+      ? getMonthlyRateKopeks(currentPrice, selectedPeriod.days)
+      : null;
+
   return (
     <div className="space-y-5">
       {/* Summary */}
@@ -497,7 +582,9 @@ function SummaryCard({
             {t('landing.total', 'Total')}
           </p>
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-2xl font-bold text-accent-400">{formatPrice(currentPrice)}</span>
+            <span className="text-2xl font-bold text-accent-400">
+              {formatPriceRounded(currentPrice)}
+            </span>
             {selectedPeriod?.original_price_kopeks != null &&
               selectedPeriod.original_price_kopeks > selectedPeriod.price_kopeks && (
                 <>
@@ -512,6 +599,14 @@ function SummaryCard({
                 </>
               )}
           </div>
+          {summaryMonthly !== null && (
+            <p className="mt-1 text-xs text-dark-400">
+              {t('landing.equalsPerMonth', {
+                price: formatPriceRounded(summaryMonthly),
+                defaultValue: '{{price}} per month',
+              })}
+            </p>
+          )}
         </div>
       </div>
 
@@ -911,6 +1006,29 @@ export default function QuickPurchase() {
     return Array.from(periodMap.values()).sort((a, b) => a.days - b.days);
   }, [config]);
 
+  // Экономия каждого периода в процентах — badge прямо на вкладке периода.
+  // Берём минимум по тарифам: процент у тарифов чуть разный, и лучше показать
+  // осторожную цифру, чем ту, которой не найдётся в карточке.
+  const periodSavings = useMemo(() => {
+    const result: Record<number, number> = {};
+    if (!config) return result;
+    for (const period of allPeriods) {
+      const percents: number[] = [];
+      for (const tariff of config.tariffs) {
+        const base = getBestMonthlyOffer(
+          tariff.periods.filter((p) => p.days >= 30),
+        )?.baseMonthlyKopeks;
+        const match = tariff.periods.find((p) => p.days === period.days);
+        if (!base || !match || match.days < 30) continue;
+        const rate = getMonthlyRateKopeks(match.price_kopeks, match.days);
+        if (rate === null || rate >= base) continue;
+        percents.push(Math.round((1 - rate / base) * 100));
+      }
+      if (percents.length > 0) result[period.days] = Math.min(...percents);
+    }
+    return result;
+  }, [config, allPeriods]);
+
   // Filter tariffs to only those that have the selected period
   const visibleTariffs = useMemo(() => {
     if (!config || !selectedPeriodDays) return config?.tariffs ?? [];
@@ -1210,6 +1328,7 @@ export default function QuickPurchase() {
                 <PeriodTabs
                   periods={allPeriods}
                   selectedDays={selectedPeriodDays ?? 0}
+                  savings={periodSavings}
                   onSelect={setSelectedPeriodDays}
                 />
               </div>

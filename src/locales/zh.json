@@ -525,7 +525,8 @@
     "tariff": {
       "perDay": "/ 天",
       "flexiblePayment": "灵活付费",
-      "selectForRenewal": "选择续费"
+      "selectForRenewal": "选择续费",
+      "saveUpTo": "最多省 {{percent}}%"
     },
     "customDays": {
       "title": "自定义天数",
@@ -4973,7 +4974,11 @@
     "paymentNotCompleted": "付款未完成",
     "paymentNotCompletedDesc": "我们没有看到付款。如果您已取消，可重新选择套餐；如果刚刚付款，请点击「再次检查」——银行有时确认较慢。",
     "recheckPayment": "再次检查",
-    "resumePayment": "返回付款"
+    "resumePayment": "返回付款",
+    "perMonth": "/ 月",
+    "totalForPeriod": "{{period}} {{price}}",
+    "fromPerMonth": "按 {{period}} 付款低至 {{price}}/月",
+    "equalsPerMonth": "相当于每月 {{price}}"
   },
   "gift": {
     "title": "赠送订阅",
