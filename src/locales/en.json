@@ -974,12 +974,13 @@
       "totalReferrals": "Total Referrals",
       "activeReferrals": "Active",
       "totalEarnings": "Total Earnings",
-      "commissionRate": "Commission Rate"
+      "commissionRate": "Commission Rate",
+      "perReferral": "Per referral"
     },
     "terms": {
       "title": "Program Terms",
       "commission": "Commission",
-      "minTopup": "Min. Top-up",
+      "minTopup": "Min. payment",
       "newUserBonus": "New User Bonus",
       "inviterBonus": "Inviter Bonus"
     },
@@ -1103,7 +1104,10 @@
         "rejected": "Rejected",
         "cancelled": "Cancelled"
       }
-    }
+    },
+    "shareHintBonus": "Share the link with friends. As soon as a friend pays for a subscription from {{min}}, you get {{bonus}} on your balance.",
+    "shareHintBonusAndCommission": "Share the link with friends. A friend pays from {{min}} — you get {{bonus}} on your balance, and {{percent}}% of every payment after that.",
+    "shareMessageSimple": "Join {{botName}} using my link!"
   },
   "support": {
     "title": "Support",

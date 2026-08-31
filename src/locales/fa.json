@@ -849,12 +849,13 @@
       "totalReferrals": "کل معرفی‌ها",
       "activeReferrals": "فعال",
       "totalEarnings": "کل درآمد",
-      "commissionRate": "نرخ کمیسیون"
+      "commissionRate": "نرخ کمیسیون",
+      "perReferral": "به‌ازای هر معرفی"
     },
     "terms": {
       "title": "شرایط برنامه",
       "commission": "کمیسیون",
-      "minTopup": "حداقل شارژ",
+      "minTopup": "حداقل پرداخت",
       "newUserBonus": "جایزه کاربر جدید",
       "inviterBonus": "جایزه معرف"
     },
@@ -978,7 +979,10 @@
         "rejected": "رد شده",
         "cancelled": "لغو شده"
       }
-    }
+    },
+    "shareHintBonus": "لینک را با دوستان به اشتراک بگذارید. به‌محض اینکه دوستتان اشتراکی از {{min}} بخرد، {{bonus}} به موجودی شما اضافه می‌شود.",
+    "shareHintBonusAndCommission": "لینک را با دوستان به اشتراک بگذارید. دوستتان از {{min}} پرداخت کند، {{bonus}} می‌گیرید و پس از آن {{percent}}٪ از هر پرداخت او.",
+    "shareMessageSimple": "با لینک من به {{botName}} بپیوند!"
   },
   "support": {
     "title": "پشتیبانی",

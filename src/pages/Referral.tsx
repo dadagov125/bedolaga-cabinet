@@ -127,11 +127,41 @@ export default function Referral() {
     },
   });
 
+  // Что именно обещаем в подсказках: разовый бонус за приглашённого, процент с
+  // его платежей или и то и другое. Программа настраивается в админке, поэтому
+  // текст собираем по фактическим числам, а не пишем один на все случаи.
+  const commissionPercent = info?.commission_percent || 0;
+  const inviterBonusRubles = terms?.inviter_bonus_rubles || 0;
+  const minPaymentLabel = terms
+    ? `${formatAmount(terms.minimum_topup_rubles)} ${currencySymbol}`
+    : '';
+  const shareHint =
+    inviterBonusRubles > 0
+      ? commissionPercent > 0
+        ? t('referral.shareHintBonusAndCommission', {
+            bonus: formatPositive(inviterBonusRubles),
+            min: minPaymentLabel,
+            percent: commissionPercent,
+            defaultValue:
+              'Поделитесь ссылкой с друзьями. Друг оплатит подписку от {{min}} — вам придёт {{bonus}} на баланс, а дальше {{percent}}% с каждого его платежа.',
+          })
+        : t('referral.shareHintBonus', {
+            bonus: formatPositive(inviterBonusRubles),
+            min: minPaymentLabel,
+            defaultValue:
+              'Поделитесь ссылкой с друзьями. Как только друг оплатит подписку от {{min}}, вам придёт {{bonus}} на баланс.',
+          })
+      : t('referral.shareHint', { percent: commissionPercent });
+
   const programTerms = useMemo(() => {
     if (!terms) return null;
     const showNewUserBonus = terms.first_topup_bonus_kopeks > 0;
     const showInviterBonus = terms.inviter_bonus_kopeks > 0;
-    const cardCount = 2 + (showNewUserBonus ? 1 : 0) + (showInviterBonus ? 1 : 0);
+    // Нулевую комиссию не показываем: «Комиссия 0 %» выглядит как поломка,
+    // хотя означает всего лишь программу на разовых бонусах.
+    const showCommission = terms.commission_percent > 0;
+    const cardCount =
+      1 + (showCommission ? 1 : 0) + (showNewUserBonus ? 1 : 0) + (showInviterBonus ? 1 : 0);
     const gridColsMap: Record<number, string> = {
       2: 'md:grid-cols-2',
       3: 'md:grid-cols-3',
@@ -143,12 +173,14 @@ export default function Referral() {
       <div className="bento-card">
         <h2 className="mb-4 text-lg font-semibold text-dark-100">{t('referral.terms.title')}</h2>
         <div className={`grid grid-cols-2 gap-4 ${gridCols}`}>
-          <StatCard
-            label={t('referral.terms.commission')}
-            value={`${terms.commission_percent}%`}
-            icon={<PercentIcon className="h-5 w-5" />}
-            tone="neutral"
-          />
+          {showCommission && (
+            <StatCard
+              label={t('referral.terms.commission')}
+              value={`${terms.commission_percent}%`}
+              icon={<PercentIcon className="h-5 w-5" />}
+              tone="neutral"
+            />
+          )}
           <StatCard
             label={t('referral.terms.minTopup')}
             value={`${formatAmount(terms.minimum_topup_rubles)} ${currencySymbol}`}
@@ -192,10 +224,16 @@ export default function Referral() {
 
   const shareLink = () => {
     if (!referralLink) return;
-    const shareText = t('referral.shareMessage', {
-      percent: info?.commission_percent || 0,
-      botName: branding?.name || import.meta.env.VITE_APP_NAME || 'Cabinet',
-    });
+    // Текст уходит другу, а не пригласившему: про кешбэк в нём уместно писать
+    // только когда кешбэк вообще есть.
+    const botName = branding?.name || import.meta.env.VITE_APP_NAME || 'Cabinet';
+    const shareText =
+      commissionPercent > 0
+        ? t('referral.shareMessage', { percent: commissionPercent, botName })
+        : t('referral.shareMessageSimple', {
+            botName,
+            defaultValue: 'Заходи в {{botName}} по моей ссылке!',
+          });
 
     if (navigator.share) {
       navigator
@@ -264,12 +302,23 @@ export default function Referral() {
           icon={<BanknotesIcon className="h-5 w-5" />}
           tone="success"
         />
-        <StatCard
-          label={t('referral.stats.commissionRate')}
-          value={`${info?.commission_percent || 0}%`}
-          icon={<PercentIcon className="h-5 w-5" />}
-          tone="accent"
-        />
+        {commissionPercent > 0 ? (
+          <StatCard
+            label={t('referral.stats.commissionRate')}
+            value={`${commissionPercent}%`}
+            icon={<PercentIcon className="h-5 w-5" />}
+            tone="accent"
+          />
+        ) : (
+          inviterBonusRubles > 0 && (
+            <StatCard
+              label={t('referral.stats.perReferral', 'За приглашённого')}
+              value={formatPositive(inviterBonusRubles)}
+              icon={<UserPlusIcon className="h-5 w-5" />}
+              tone="accent"
+            />
+          )
+        )}
       </div>
 
       {/* Referral Links */}
@@ -339,9 +388,7 @@ export default function Referral() {
             </div>
           </div>
         </div>
-        <p className="mt-3 text-sm text-dark-500">
-          {t('referral.shareHint', { percent: info?.commission_percent || 0 })}
-        </p>
+        <p className="mt-3 text-sm text-dark-500">{shareHint}</p>
       </div>
 
       {/* Program Terms */}

@@ -993,12 +993,13 @@
       "totalReferrals": "Всего рефералов",
       "activeReferrals": "Активных",
       "totalEarnings": "Общий заработок",
-      "commissionRate": "Комиссия"
+      "commissionRate": "Комиссия",
+      "perReferral": "За приглашённого"
     },
     "terms": {
       "title": "Условия программы",
       "commission": "Комиссия",
-      "minTopup": "Мин. пополнение",
+      "minTopup": "Мин. оплата",
       "newUserBonus": "Бонус новому пользователю",
       "inviterBonus": "Бонус пригласившему"
     },
@@ -1122,7 +1123,10 @@
         "rejected": "Отклонен",
         "cancelled": "Отменен"
       }
-    }
+    },
+    "shareHintBonus": "Поделитесь ссылкой с друзьями. Как только друг оплатит подписку от {{min}}, вам придёт {{bonus}} на баланс.",
+    "shareHintBonusAndCommission": "Поделитесь ссылкой с друзьями. Друг оплатит подписку от {{min}} — вам придёт {{bonus}} на баланс, а дальше {{percent}}% с каждого его платежа.",
+    "shareMessageSimple": "Заходи в {{botName}} по моей ссылке!"
   },
   "support": {
     "title": "Поддержка",

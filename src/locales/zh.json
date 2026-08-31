@@ -849,12 +849,13 @@
       "totalReferrals": "总推荐数",
       "activeReferrals": "活跃",
       "totalEarnings": "总收益",
-      "commissionRate": "佣金比例"
+      "commissionRate": "佣金比例",
+      "perReferral": "每位好友"
     },
     "terms": {
       "title": "计划条款",
       "commission": "佣金",
-      "minTopup": "最低充值",
+      "minTopup": "最低支付",
       "newUserBonus": "新用户奖励",
       "inviterBonus": "邀请人奖励"
     },
@@ -978,7 +979,10 @@
         "rejected": "已拒绝",
         "cancelled": "已取消"
       }
-    }
+    },
+    "shareHintBonus": "把链接分享给朋友。朋友支付 {{min}} 起的订阅后，你的余额会收到 {{bonus}}。",
+    "shareHintBonusAndCommission": "把链接分享给朋友。朋友支付 {{min}} 起的订阅，你会收到 {{bonus}}，之后每笔付款再得 {{percent}}%。",
+    "shareMessageSimple": "用我的链接加入 {{botName}}！"
   },
   "support": {
     "title": "支持",
