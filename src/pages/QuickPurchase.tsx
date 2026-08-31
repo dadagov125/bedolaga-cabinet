@@ -97,6 +97,21 @@ function ErrorState({ message }: { message: string }) {
   );
 }
 
+/** Шаг покупки на лендинге. Номер шага не хранится: он считается по факту
+ *  показанных блоков, потому что часть из них скрывается (единственный тариф,
+ *  единственный период, лендинг без способов оплаты) — зашитые в текст «1, 3, 4»
+ *  читались бы как поломка. */
+interface PurchaseStep {
+  key: string;
+  title: string;
+  /** Блок под заголовком. Не нужен, если блок рисует заголовок сам. */
+  body?: React.ReactNode;
+  /** Что показать над заголовком, не занимая своего номера. */
+  before?: React.ReactNode;
+  /** Блок рисует заголовок сам — например как <label> у поля ввода. */
+  ownHeading?: (heading: string) => React.ReactNode;
+}
+
 function PeriodTabs({
   periods,
   selectedDays,
@@ -182,6 +197,7 @@ function GiftToggle({ isGift, onToggle }: { isGift: boolean; onToggle: (v: boole
 }
 
 function ContactForm({
+  label,
   contactType,
   onContactTypeChange,
   contacts,
@@ -194,6 +210,7 @@ function ContactForm({
   giftMessage,
   onGiftMessageChange,
 }: {
+  label: string;
   contactType: ContactType;
   onContactTypeChange: (t: ContactType) => void;
   contacts: ContactValues;
@@ -212,7 +229,7 @@ function ContactForm({
     <div className="space-y-4 rounded-2xl border border-dark-800/50 bg-dark-900/50 p-5">
       <ContactField
         id="contact-input"
-        label={t('landing.yourContact', 'Введите ваш идентификатор')}
+        label={label}
         type={contactType}
         onTypeChange={onContactTypeChange}
         values={contacts}
@@ -310,9 +327,12 @@ function TariffCard({
       aria-checked={isSelected}
       onClick={onSelect}
       className={cn(
-        'relative flex w-full flex-col rounded-2xl border p-5 text-start transition-all duration-200',
+        // border-2 на обоих состояниях: иначе выбор карточки менял её размер на
+        // 2px и вся сетка дёргалась. Выбранная — сплошной акцентный цвет темы,
+        // не полупрозрачный: приглушённый бордер не читался как «выбрано».
+        'relative flex w-full flex-col rounded-2xl border-2 p-5 text-start transition-all duration-200',
         isSelected
-          ? 'border-accent-500/50 bg-accent-500/5 ring-1 ring-accent-500/25'
+          ? 'border-accent-500 bg-accent-500/5'
           : 'border-dark-800/50 bg-dark-900/50 hover:border-dark-700/50 hover:bg-dark-800/30',
       )}
     >
@@ -1271,6 +1291,140 @@ export default function QuickPurchase() {
 
   const showTariffCards = visibleTariffs.length > 1;
 
+  // Порядок шагов покупки. Держим списком, а не порядком JSX-блоков: поменять
+  // шаги местами — это перестановка строк здесь, и сюда же подставится порядок
+  // из конструктора лендинга, если он однажды станет настраиваемым.
+  //
+  // Сначала тариф, потом срок: скидка «−40 %» имеет смысл только когда человек
+  // уже выбрал, к чему она применяется. Контакт — после выбора, потому что ввод
+  // это работа, и просить её раньше согласия дорого. Способ оплаты последним:
+  // он смысловая пара с кнопкой «Оплатить» и стоит к ней вплотную.
+  const purchaseSteps: PurchaseStep[] = [];
+
+  if (showTariffCards) {
+    purchaseSteps.push({
+      key: 'tariff',
+      title: t('landing.stepTariff', 'Tariff'),
+      body: (
+        <div
+          role="radiogroup"
+          aria-label={t('landing.chooseTariff', 'Choose tariff')}
+          className="grid gap-3 sm:grid-cols-2"
+        >
+          {visibleTariffs.map((tariff) => {
+            const period = tariff.periods.find((p) => p.days === selectedPeriodDays);
+            return (
+              <TariffCard
+                key={tariff.id}
+                tariff={tariff}
+                isSelected={tariff.id === selectedTariffId}
+                selectedPeriod={period}
+                onSelect={() => setSelectedTariffId(tariff.id)}
+              />
+            );
+          })}
+        </div>
+      ),
+    });
+  }
+
+  if (allPeriods.length > 0) {
+    purchaseSteps.push({
+      key: 'period',
+      title: t('landing.stepPeriod', 'Period'),
+      body: (
+        <PeriodTabs
+          periods={allPeriods}
+          selectedDays={selectedPeriodDays ?? 0}
+          savings={periodSavings}
+          onSelect={setSelectedPeriodDays}
+        />
+      ),
+    });
+  }
+
+  purchaseSteps.push({
+    key: 'contact',
+    title: t('landing.stepContact', 'Where to attach the subscription'),
+    // Тумблер «в подарок» переключает, кому достанется подписка, — его место
+    // прямо над полем контакта, но своим номером он шаг не занимает.
+    before: config.gift_enabled ? <GiftToggle isGift={isGift} onToggle={setIsGift} /> : null,
+    // Заголовок рисует сам блок: это <label> у поля ввода, а не отдельный <h2>,
+    // иначе над карточкой окажется два заголовка подряд.
+    ownHeading: (heading) => (
+      <ContactForm
+        label={heading}
+        contactType={contactType}
+        onContactTypeChange={(next) => {
+          setContactType(next);
+          try {
+            localStorage.setItem(`${contactKey}_type`, next);
+          } catch {
+            /* */
+          }
+          setSubmitError(null);
+        }}
+        contacts={contacts}
+        onContactsChange={(next) => {
+          setContacts(next);
+          try {
+            localStorage.setItem(contactKey, JSON.stringify(next));
+          } catch {
+            /* */
+          }
+          setSubmitError(null);
+        }}
+        isGift={isGift}
+        giftType={giftType}
+        onGiftTypeChange={setGiftType}
+        giftContacts={giftContacts}
+        onGiftContactsChange={(next) => {
+          setGiftContacts(next);
+          setSubmitError(null);
+        }}
+        giftMessage={giftMessage}
+        onGiftMessageChange={setGiftMessage}
+      />
+    ),
+  });
+
+  if (config.payment_methods.length > 0) {
+    purchaseSteps.push({
+      key: 'payment',
+      title: t('landing.stepPayment', 'Payment'),
+      body: (
+        <div
+          role="radiogroup"
+          aria-label={t('landing.paymentMethod', 'Payment method')}
+          className="space-y-2"
+        >
+          {config.payment_methods.map((method) => (
+            <PaymentMethodCard
+              key={method.method_id}
+              method={method}
+              isSelected={method.method_id === selectedMethod}
+              selectedSubOption={method.method_id === selectedMethod ? selectedSubOption : null}
+              onSelect={() => {
+                setSelectedMethod(method.method_id);
+                // Auto-select first sub-option (even for single — backend needs suffix)
+                if (method.sub_options && method.sub_options.length >= 1) {
+                  setSelectedSubOption(defaultSubOptionId(method.sub_options));
+                } else {
+                  setSelectedSubOption(null);
+                }
+              }}
+              onSelectSubOption={setSelectedSubOption}
+            />
+          ))}
+        </div>
+      ),
+    });
+  }
+
+  // Нумеруем только когда шагов действительно несколько: единственный «1.»
+  // выглядит как обрезанный список.
+  const showStepNumbers = purchaseSteps.length > 1;
+
   return (
     <div className="min-h-dvh overflow-x-hidden">
       {/* Background: the landing's own per-landing theme when configured, else
@@ -1319,119 +1473,24 @@ export default function QuickPurchase() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="min-w-0 space-y-6"
           >
-            {/* Period tabs */}
-            {allPeriods.length > 0 && (
-              <div>
-                <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-dark-400">
-                  {t('landing.choosePeriod', 'Choose period')}
-                </h2>
-                <PeriodTabs
-                  periods={allPeriods}
-                  selectedDays={selectedPeriodDays ?? 0}
-                  savings={periodSavings}
-                  onSelect={setSelectedPeriodDays}
-                />
-              </div>
-            )}
-
-            {/* Gift toggle */}
-            {config.gift_enabled && <GiftToggle isGift={isGift} onToggle={setIsGift} />}
-
-            {/* Contact form */}
-            <ContactForm
-              contactType={contactType}
-              onContactTypeChange={(next) => {
-                setContactType(next);
-                try {
-                  localStorage.setItem(`${contactKey}_type`, next);
-                } catch {
-                  /* */
-                }
-                setSubmitError(null);
-              }}
-              contacts={contacts}
-              onContactsChange={(next) => {
-                setContacts(next);
-                try {
-                  localStorage.setItem(contactKey, JSON.stringify(next));
-                } catch {
-                  /* */
-                }
-                setSubmitError(null);
-              }}
-              isGift={isGift}
-              giftType={giftType}
-              onGiftTypeChange={setGiftType}
-              giftContacts={giftContacts}
-              onGiftContactsChange={(next) => {
-                setGiftContacts(next);
-                setSubmitError(null);
-              }}
-              giftMessage={giftMessage}
-              onGiftMessageChange={setGiftMessage}
-            />
-
-            {/* Tariff cards */}
-            {showTariffCards && (
-              <div>
-                <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-dark-400">
-                  {t('landing.chooseTariff', 'Choose tariff')}
-                </h2>
-                <div
-                  role="radiogroup"
-                  aria-label={t('landing.chooseTariff', 'Choose tariff')}
-                  className="grid gap-3 sm:grid-cols-2"
-                >
-                  {visibleTariffs.map((tariff) => {
-                    const period = tariff.periods.find((p) => p.days === selectedPeriodDays);
-                    return (
-                      <TariffCard
-                        key={tariff.id}
-                        tariff={tariff}
-                        isSelected={tariff.id === selectedTariffId}
-                        selectedPeriod={period}
-                        onSelect={() => setSelectedTariffId(tariff.id)}
-                      />
-                    );
-                  })}
+            {purchaseSteps.map((step, index) => {
+              const heading = showStepNumbers ? `${index + 1}. ${step.title}` : step.title;
+              return (
+                <div key={step.key}>
+                  {step.before && <div className="mb-6">{step.before}</div>}
+                  {step.ownHeading ? (
+                    step.ownHeading(heading)
+                  ) : (
+                    <>
+                      <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-dark-400">
+                        {heading}
+                      </h2>
+                      {step.body}
+                    </>
+                  )}
                 </div>
-              </div>
-            )}
-
-            {/* Payment methods */}
-            {config.payment_methods.length > 0 && (
-              <div>
-                <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-dark-400">
-                  {t('landing.paymentMethod', 'Payment method')}
-                </h2>
-                <div
-                  role="radiogroup"
-                  aria-label={t('landing.paymentMethod', 'Payment method')}
-                  className="space-y-2"
-                >
-                  {config.payment_methods.map((method) => (
-                    <PaymentMethodCard
-                      key={method.method_id}
-                      method={method}
-                      isSelected={method.method_id === selectedMethod}
-                      selectedSubOption={
-                        method.method_id === selectedMethod ? selectedSubOption : null
-                      }
-                      onSelect={() => {
-                        setSelectedMethod(method.method_id);
-                        // Auto-select first sub-option (even for single — backend needs suffix)
-                        if (method.sub_options && method.sub_options.length >= 1) {
-                          setSelectedSubOption(defaultSubOptionId(method.sub_options));
-                        } else {
-                          setSelectedSubOption(null);
-                        }
-                      }}
-                      onSelectSubOption={setSelectedSubOption}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+              );
+            })}
           </motion.div>
 
           {/* Right column (sticky sidebar / bottom on mobile) */}
